@@ -28,9 +28,10 @@
 
 - 第二部分需要大量时间，还需要根据第一部分的学习进行细分。例如：
 
-    -  具体做哪几个过程？
-    -  拓展模型用哪几个（随机效应，测量误差，多阶段，多失效机制）？ 
-    -  统计推断方法，是否需要使用拓展的方法？
+    -  具体做哪几个过程（维纳，伽马，逆高斯，指数扩散过程），参考综述《Remaining useful life estimation – A review on the statistical data driven approaches》？
+    -  拓展模型用哪几个（随机效应，测量误差，多阶段，多失效机制），参考综述《Degradation data analysis and remaining useful life estimation: A review on Wiener-process-based methods
+Remaining useful life estimation – A review on the statistical data driven approaches》？ 
+    -  统计推断方法（极大似然，EM算法，贝叶斯方法以及非参数方法），是否需要使用拓展的方法？
     -  能否使用可以共用的统计推断方法？（MLE的话需要每个过程手写对数似然函数，工作量大！）
     -  新的推断方法是否可以引进（贝叶斯最新的方法，近似贝叶斯，合成似然？）
     -  案例分析（具体使用哪些典型的方法）

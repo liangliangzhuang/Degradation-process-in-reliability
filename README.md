@@ -36,4 +36,6 @@ Remaining useful life estimation – A review on the statistical data driven app
     -  新的推断方法是否可以引进（贝叶斯最新的方法，近似贝叶斯，合成似然？）
     -  案例分析（具体使用哪些典型的方法）
 
+- 具体步骤 
+    - 收集
 

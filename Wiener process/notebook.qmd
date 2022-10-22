@@ -107,7 +107,6 @@ t = 1:200
 para = c(1,1)
 dat = sim_dat(group = group, t = t, para = para)
 knitr::kable(head(dat))
-
 plot_path(dat)
 ```
 

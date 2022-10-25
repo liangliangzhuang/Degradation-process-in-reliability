@@ -11,7 +11,7 @@ editor_options:
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
-## Introduction
+## 1. 介绍
 
 近年来，基于退化的可靠性技术在模型、方法和应用等方面得到快速发展。其中，在**基于退化的可靠性模型**方面，以随机过程理论为基础，根据工程需要，并考虑模型的简明性、实用性和适用性，已经提出了多种类型的模型，包括：
 
@@ -25,7 +25,6 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 5.  更为一般的纯跳过程模型（如Levy.过程模利）和扩散过程模型（如随机微分方程模型）等。
 
-
 在基于退化的可靠性建模方法，以数理统计理论为基础，针对模型和退化数据的类型，研究**矩估计、极大似估计及 EM 算法、Bayes 估计及 MCMC算法、基于滤波的状态估计方法**，以及**非参数和半参数方法**等，解决模型辨识和修正问题;
 
 采用**似然比检验、Bayes 因子分析**等方法进行模型验证;
@@ -34,13 +33,13 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 在基于退化的可靠性技术应用方面，针对**机械零部件（如轴承、润滑系统）、半导体器件（如功率MOS器件）、机电部件（如感应电动机）、光电器件(如太阳电池、激光器、LED)、电子器件（如电容、蓄电池）**等的退化失效过程，开展**退化过程建模、可靠性评估、剩余寿命预测、可靠性试验设计**：特别是加速退化试验方案设计的研究。
 
+## 2. 退化轨道模型
 
-## 退化轨道模型
+暂时不考虑
 
-## Wiener 退化过程模型
+## 3. Wiener 退化过程模型
 
-Wiener 过程由于其简单的结构和比较丰富的研究成果，成为目前退化过程建模中
-应用最为广泛的一种模型。
+Wiener 过程由于其简单的结构和比较丰富的研究成果，成为目前退化过程建模中 应用最为广泛的一种模型。
 
 Wiener 退化过程的**首达时间分布具有解析形式**，便于对**产品寿命**和**可靠度**的分析和计算。
 
@@ -50,15 +49,14 @@ Wiener 退化过程可以描述产品退化过程的时间不确定性，而且�
 
 对 Wiener 退化过程及其观测过程所构成的**状态空间模型**，可以采用 **Kalman 滤波技术**进行处理，为产品**在线寿命预测、视情维修决策**等提供了可行的算法和实现途径。
 
-
 ```{r}
 library(ggplot2)
 library(tidyverse)
 library(viridis)
 ```
 
+### 3.1 数据模拟产生
 
-### 数据模拟产生
 ```{r}
 # 数据模拟产生
 sim_dat = function(group = 6, t = 1:200, para = c(1,0.1)){
@@ -80,7 +78,7 @@ sim_dat = function(group = 6, t = 1:200, para = c(1,0.1)){
 }
 ```
 
-#### 绘制退化路径图
+#### 3.1.2 绘制退化路径图
 
 ```{r}
 # 绘制退化路径图
@@ -99,8 +97,6 @@ plot_path = function(data = dat1){
 }
 ```
 
-
-
 ```{r}
 group = 6
 t = 1:200
@@ -110,13 +106,13 @@ knitr::kable(head(dat))
 plot_path(dat)
 ```
 
-### 参数估计
+### 3.2 统计推断
 
-#### 极大似然估计
+#### 3.2.1 极大似然估计
 
 ```{r}
 cumsub = function(x){
-  #逐个相减
+  #完成逐个相减功能，类似cumsum
   re = numeric()
   re[1] = x[1]
   for(i in 2:length(x)){
@@ -129,6 +125,8 @@ cumsub = function(x){
 
 ```{r}
 Weiner_mle = function(par = c(1,1),data = dat){
+  # 输入：mu，sigma，数据
+  # 输出：负对数似然函数
   mu = par[1]; sigma = par[2]
   group = ncol(data) - 1;time = data[,1];y = data[-1,-1]
   # 差分得到delta_time和delta_y
@@ -158,7 +156,9 @@ Wiener_R(t = 100, threshold = 150,par = mle_par)
 # plot(Wiener_R(t = 1:300, threshold = 150,par = mle_par),type = "l")
 ```
 
-#### 案例分析
+### 3.3 案例分析
+
+#### 3.3.1 NASA 锂电池数据
 
 导入数据，数据来源于[NASA Ames Prognostics Center of Excellence (PCoE)](https://c3.ndc.nasa.gov/dashlink/resources/133/)，但是找不到数据下载。最后是通过 [Github](https://github.com/psanabriaUC/BatteryDatasetImplementation) 获得。
 
@@ -167,13 +167,9 @@ liion_data = read.csv("dataset/li-ion_battery_aging.csv")
 head(liion_data)
 ```
 
-该数据是 NASA Ames Prognostics Center of Fxcellence (PCoF）对商用锂离子 18650
-电池进行充、放电试验获得的一组蓄电池容量变化数据。试验过程中，锂离子在室温下
-经历 3 种不同的运行剖面，即**充电**、**放电**和**测量 EIS**。
+该数据是 NASA Ames Prognostics Center of Fxcellence (PCoF）对商用锂离子 18650 电池进行充、放电试验获得的一组蓄电池容量变化数据。试验过程中，锂离子在室温下 经历 3 种不同的运行剖面，即**充电**、**放电**和**测量 EIS**。
 
-充电是以**恒流模**式(CC)进行，在
-1.5A 电流下直到电池电压达到4.2V，然后以**恒压模式**(CV)继续充电直到电流降到
-20mA。
+充电是以**恒流模**式(CC)进行，在 1.5A 电流下直到电池电压达到4.2V，然后以**恒压模式**(CV)继续充电直到电流降到 20mA。
 
 放电也以恒流模式进行，放电电流为2A，直到电池电压降低到2.7V。
 
@@ -220,7 +216,6 @@ liion_data %>%
     values_fn = mean) -> liion_new
 ```
 
-
 ```{r}
 mle_re = optim(par=c(1,1), fn = Weiner_mle, 
       data = data.frame(liion_new), method = "BFGS", hessian = TRUE)
@@ -229,6 +224,7 @@ mle_par
 ```
 
 计算可靠度并绘图
+
 ```{r}
 # 计算可靠度
 Wiener_R(t = 100, threshold = max_battery$threshold, par = mle_par)
@@ -249,6 +245,104 @@ R_re %>% pivot_longer(max_battery[,1],
   scale_color_viridis(discrete = T) +
   labs(x = "Time", y = "Reliability")
 ```
+
+#### 3.3.2 激光器件 Laser 数据集
+
+数据集来自 Meeker, W. Q. (1998). Statistical Methods for Reliability Data。
+
+激光器件的质量特征是其**工作电流**。当工作电流达到预定义的阈值水平ω = 10时，该设备被认为是故障。其电流的测量频率为每250小时一次，实验在4000小时时终止。图1(a)显示了15个被测试单元的降解路径及其拟合的平均趋势。
+
+```{r}
+Laser_dat = read.csv("dataset/GaAsLaser.csv")
+head(Laser_dat)
+Laser_dat$Unit = as.factor(Laser_dat$Unit)
+```
+
+```{r}
+Laser_dat %>% ggplot(aes(Hours,Value,fill = Unit)) +
+  geom_line(size = 0.1) + 
+  geom_point(size = 0.8) + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank()) +
+  # scale_color_viridis(discrete = T) + 
+  theme(legend.position = 'none') +
+  labs(x = "Hours", y = "Degradation characteristic")
+```
+
+```{r}
+Laser_dat %>% 
+  pivot_wider(
+    names_from = "Unit",
+    values_from = "Value")  -> Laser_new
+```
+
+```{r}
+mle_Laser = optim(par=c(1,1), fn = Weiner_mle, 
+      data = data.frame(Laser_new), method = "BFGS", hessian = TRUE)
+mle_par = mle_Laser$par
+mle_par
+```
+
+计算可靠度并绘图，阈值设置参考 Wang, X., et al. (2020). "Accurate reliability inference based on Wiener process with random effects for degradation data." Reliability Engineering & System Safety **193**. 第6节案例分析
+
+这里将每个测试单元的可靠度进行绘制，但是由于类似，所以重复在一条线上了。
+
+> 可拓展：加入90%，95%的 R（计算参数的区间估计）；所有测试单元求平均得到可靠度。
+
+```{r}
+# 计算可靠度
+Wiener_R(t = 5000, threshold = 10, par = mle_par)
+time_region = 10000
+# 绘制15个测试单元的可靠度图
+R_re = matrix(NA,time_region,dim(Laser_new)[2]-1)
+for(i in 1:dim(Laser_new)[2]-1){
+  R_re[,i] = Wiener_R(t = 1:time_region, threshold = 10, par = mle_par)
+}
+R_re = as.data.frame(R_re)
+R_re = cbind(1:time_region,R_re)
+colnames(R_re) = colnames(Laser_new)
+R_re %>% pivot_longer(colnames(Laser_new)[-1], 
+                       names_to = "Group", 
+                       values_to = "y") %>% 
+  ggplot(aes(Hours,y,color = Group)) +
+  geom_line() + 
+  labs(x = "Time", y = "Reliability") + 
+  theme(legend.position = 'none')
+
+```
+
+### **炭膜电阻器** carbon-film resistors
+
+碳膜电阻器的退化数据来自Meeker, W. Q. (1998). Statistical Methods for Reliability Data。（常应力下的加速退化数据）。
+
+在某些电阻器的操作过程中，退化会导致电阻的增加。当电阻的增加百分比达到退化阈值水平时，电阻就失效了。
+
+> Zhou2022 只使用了83摄氏度下的测试数据。数据中有10个碳膜电阻的测试样品，在83C温度下，在相同的检测时间点452 h, 1030 h, 4341 h, 8084 h测量。10个碳膜电阻的电阻百分比递增路径如下图所示。
+
+```{r}
+resistor_dat = read.csv("dataset/Resistor.csv")
+head(resistor_dat)
+colnames(resistor_dat) = c("Value","Unit","Degree","Hours")
+resistor_dat$Unit = as.factor(resistor_dat$Unit)
+```
+
+```{r}
+library(latex2exp)
+resistor_dat %>% filter(Degree == 83) %>% 
+  ggplot(aes(Hours,Value,fill = Unit)) +
+  geom_line(size = 0.1) + 
+  geom_point(size = 0.8) + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank()) +
+  # scale_color_viridis(discrete = T) + 
+  theme(legend.position = 'none') +
+  labs(x = TeX(r"(Hours($10^3$))"), y = "Degradation characteristic")
+```
+
+后续参数估计和可靠度估计就先不做了。
+
+类似的数据集还包括：
+
 
 
 

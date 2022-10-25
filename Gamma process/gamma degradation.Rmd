@@ -1,0 +1,343 @@
+---
+title: "Gamma"
+author: "Wenhui Wu"
+date: "2022-10-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+## Introduction
+
+近年来，基于退化的可靠性技术在模型、方法和应用等方面得到快速发展。其中，在**基于退化的可靠性模型**方面，以随机过程理论为基础，根据工程需要，并考虑模型的简明性、实用性和适用性，已经提出了多种类型的模型，包括：
+
+1.  退化轨道模型（如 Paris 模型、随机斜率/截距模型、幂律模型、反应论模型）
+
+2.  基于 Wiener 过程的模型
+
+3.  基于 Gamma 过程的模型
+
+4.  累积损伤模型(主要是基于混合 Poisson 过程的模型）
+
+5.  更为一般的纯跳过程模型（如Levy.过程模利）和扩散过程模型（如随机微分方程模型）等。
+
+在基于退化的可靠性建模方法，以数理统计理论为基础，针对模型和退化数据的类型，研究**矩估计、极大似估计及 EM 算法、Bayes 估计及 MCMC算法、基于滤波的状态估计方法**，以及**非参数和半参数方法**等，解决模型辨识和修正问题;
+
+采用**似然比检验、Bayes 因子分析**等方法进行模型验证;
+
+采用**均方误差（MSE）、Akaike 信息准则(AIC)、Bayes 信息准则(BIC)、偏差信息准则(DIC)**等进行模型优良性检验。
+
+在基于退化的可靠性技术应用方面，针对**机械零部件（如轴承、润滑系统）、半导体器件（如功率MOS器件）、机电部件（如感应电动机）、光电器件(如太阳电池、激光器、LED)、电子器件（如电容、蓄电池）**等的退化失效过程，开展**退化过程建模、可靠性评估、剩余寿命预测、可靠性试验设计**：特别是加速退化试验方案设计的研究。
+
+## 退化轨道模型
+
+
+## Gamma退化过程模型
+
+Gamma 过程描述的退化过程是严格单调非负的，并且Gamma 过程是纯跳过程，其样本路径不连续，既可描述连续的微小冲击导致的缓慢退化，也可以描述大的冲击导致的大的损伤。
+
+### 似然函数
+
+假设共有 $\mathrm{n}$ 个样品进行性能退化试验. 对于样品 $i$, 初始时刻 $t_0$ 性 能退化量为 $X_{i 0}=0$, 在时刻 $t_1, \cdots, t_{m_i}$ 测量产品的性能退化量, 得到 其测量值为 $X_{i 1}, \cdots, X_{i m_i}$. 记 $\Delta x_{i j}=X_{i j}-X_{i(j-1)}$ 是样品 $i$ 在时刻 $t_{j-1}$ 和 $t_j$ 之间的性能退化量, 由 Gamma 过程的独立增量性得到$\Delta X(t) \sim Ga(\alpha \Delta t_{ij},\beta)$。则似然函数为
+
+$$
+l(\alpha, \beta)=\sum_{i=1}^n\left(\sum_{j=1}^{m_i}\left(\alpha \Delta t_{i j}-1\right) \ln \Delta x_{i j}-\alpha t_{i m_i} \ln \beta-\sum_{j=1}^{m_i} \ln \Gamma\left(\alpha \Delta t_{i j}\right)-\frac{x_{i m_i}}{\beta}\right)
+$$
+
+### 产品寿命
+
+因为Gamma 过程的退化是单调递增的，即$X(t) \sim Ga(\alpha t,\beta)$ ,因此**产品寿命**的分布可以通过退化量的转变关系获得。当给定产品退化失效阈值 $\ell$ 时，产品寿命 $T$ 的CDF和PDF为
+
+$$
+\begin{aligned}
+\mathrm{F}_{\mathrm{T}}(t) &=\mathrm{P}(\mathrm{T} \leqslant \mathrm{t})=\mathrm{P}(\mathrm{X}(\mathrm{t}) \geqslant \ell) \\
+&=\int_{\ell}^{\infty} \frac{1}{\Gamma(\alpha \mathrm{t}) \beta^{\alpha \mathrm{t}}} \mathrm{x}^{\alpha \mathrm{t}-1} \mathrm{e}^{-\frac{\mathrm{x}}{\beta}} \mathrm{dx} \\
+&=\frac{1}{\Gamma(\alpha \mathrm{t})} \int_{\frac{\ell}{\beta}}^{\infty} \xi^{\alpha \mathrm{t}-1} \mathrm{e}^{-\xi} \mathrm{d} \xi ,\\
+\mathrm{f}_{\mathrm{T}}(t) &=\frac{\mathrm{d}}{\mathrm{dt}} \frac{\Gamma(\alpha \mathrm{t}, 1 / \beta)}{\Gamma(\alpha \mathrm{t})} \\
+&=\frac{\alpha}{\Gamma(\alpha \mathrm{t})} \int_0^{\nu / \beta}\left[\ln (\xi)-\frac{\Gamma^{\prime}(\alpha \mathrm{t})}{\Gamma(\alpha \mathrm{t})}\right] \xi^{\alpha \mathrm{t}-1} \mathrm{e}^{-\xi} \mathrm{d} \xi.
+\end{aligned}
+$$
+
+由于$\mathrm{f}_{\mathrm{T}}(\mathrm{t})$ 相当复杂，因此一般用B-S分布来逼近：
+
+$$
+\mathrm{F}(t ; \ell)=\Phi\left[\frac{1}{\mathrm{v}}\left(\sqrt{\frac{\mathrm{t}}{\mathrm{u}}}-\sqrt{\frac{\mathrm{u}}{\mathrm{t}}}\right)\right], \quad \mathrm{t}>0
+$$ 其中, $\Phi(\cdot)$ 为标准正态分布, $v=\sqrt{\frac{\beta}{\ell}}, u=\frac{\ell}{\beta \alpha}$. 相应的 PDF 为 $$
+\mathrm{f}(t ; \ell)=\frac{1}{2 \sqrt{2 \pi} \mathrm{uv}}\left[\left(\frac{\mathrm{u}}{\mathrm{t}}\right)^{\frac{1}{2}}+\left(\frac{\mathrm{u}}{\mathrm{t}}\right)^{\frac{3}{2}}\right] \exp \left[-\frac{1}{2 \mathrm{v}^2}\left(\frac{\mathrm{t}}{\mathrm{u}}-2+\frac{\mathrm{u}}{\mathrm{t}}\right)\right], \mathrm{t}>0
+$$
+
+### 剩余寿命
+
+根据Gamma 过程的增量独立性，可以得到剩余寿命的分布 $$
+\begin{aligned}
+\mathrm{F}(t \mid s) &=\mathrm{P}\left(\mathrm{T} \leqslant t \mid \mathrm{X}(s)=\mathrm{x}_{s}\right) \\
+&=\mathrm{P}\left(X(t)-X(s) \geqslant \ell-x_{s}\right) \\
+&=\frac{\Gamma\left(\alpha(t-s),\left(\ell-x_{s}\right) / \beta\right)}{\Gamma(\alpha(t-s))} .
+\end{aligned}
+$$ 这与将失效阈值由 $\ell$ 变为 $\ell-{x_s}$ 、时间 $t$ 变为 $t-s$ 情形的寿命分 布是一样的. 因此, 在给定当前状态情况下, 可以按照类似的途径更新剩余寿命.
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(viridis)
+library(dplyr)
+```
+
+### 数据模拟产生
+
+```{r}
+# 数据模拟产生
+sim_dat = function(group = 6, t = 1:200, para = c(4,2)){
+  # para 指 alpha,beta
+  # epoch 指测量次数， group 指组数
+  delta_t = diff(t)
+  epoch = length(delta_t)
+  dat = dat_unit = matrix(NA,epoch,group+1)
+  dat[,1] = dat_unit[,1] = seq(1,epoch)
+  # dat_unit = numeric()
+  for(i in 1:group){
+    for(j in 1:epoch) {
+      dat_unit[j,i+1] = rgamma(1,para[1]*delta_t[j],para[2])
+      dat[,i+1] = cumsum(dat_unit[,i+1])
+    }
+  }
+  dat = data.frame(dat)
+  dat1 = rbind(rep(0,group+1),dat) # 加入初始值绘制点
+  colnames(dat1) = c("Time",paste(1:group,sep=''))
+  
+  dat_unit = data.frame(dat_unit)
+  dat_unit1 = rbind(rep(0,group+1),dat_unit) # 加入初始值绘制点
+  colnames(dat_unit1) = c("Time",paste(1:group,sep=''))
+  
+  return(list(dat1,dat_unit1)) #dat1是退化量,data_unit1是退化增量
+}
+```
+
+#### 绘制退化路径图
+
+```{r}
+# 绘制退化路径图
+plot_path = function(data = dat1){
+    # 画图
+  p = data %>% pivot_longer(paste(1:group), 
+                       names_to = "Group", 
+                       values_to = "y") %>% 
+    ggplot(aes(Time,y,color = Group)) + 
+    geom_line() + 
+    scale_color_viridis(discrete = T) + 
+    ylab("Degradation") #+
+    #theme_bw() +
+    #theme(panel.grid = element_blank())
+  print(p)
+}
+```
+
+```{r}
+group = 6
+t = 1:200
+para = c(4,2)
+dat = sim_dat(group = group, t = t, para = para)
+knitr::kable(head(dat[[1]])) #print table
+plot_path(dat[[1]]) #print path plot
+```
+
+### 参数估计
+
+
+#### 矩估计
+
+```{r}
+gamma_moment = function(data_unit, group , t ){
+
+  # 每组测量次数相同
+  delta_t = diff(t)
+  M = group*max(t)
+  Rij = data_unit/delta_t
+  Rbar = sum(Rij)/M
+  MSR2 = sum((Rij-Rbar)^2)
+  tt = group*sum(1/delta_t)
+  moment_alp = Rbar^2*tt/MSR2
+  moment_beta = MSR2/(tt*Rbar)
+  
+  moment_par = c(moment_alp,moment_beta)
+  return(moment_par)
+  
+}
+# 这里算出来beta的矩估计跟真值差距很大
+# 注意如果用模拟数据产生的话，只保留增量数据,也要去掉第一行的0
+# ？ 前面加上这么多只是为了画图好看，是不是可以删掉这些东西
+increment = dat[[2]]
+increment = increment[-1,2:7]
+degradation = dat[[1]]
+degradation = degradation[-1,2:7]
+  
+moment_par = gamma_moment(data_unit = increment, group = 6, t = 1:200)
+moment_par
+
+```
+
+#### 极大似然估计
+
+```{r}
+library(BB)
+
+gamma_alpmle = function(x, data_unit, data, t){
+    #x is alpha
+    delta_t = diff(t)
+    l = sum(delta_t*log(data_unit))-sum(t*log(data/(x*t)))-sum(delta_t*digamma(x*delta_t))
+    return(l)
+}
+
+startx = 1
+mle_re = dfsane(startx,gamma_alpmle,data_unit = increment, data = degradation, t = 1:200,control=list(maxit=2500,trace = FALSE))
+
+mle_re
+mle_alp = mle_re$par
+mle_beta = sum(increment)/(mle_alp*group*max(t))
+mle_par = c(mle_alp,mle_beta)
+
+
+# mle_re = uniroot(gamma_alpmle, data_unit = increment, data = degradation, t = 1:200, lower = 1, upper = 100, tol = 1e-15, maxiter = 10000)
+# 
+# mle_alp = mle_re$root
+# mle_beta = sum(increment)/(mle_alp*group*max(t))
+# mle_par = c(mle_alp,mle_beta)
+
+```
+
+```{r}
+## 可靠度计算
+gamma_R = function(t, threshold,par){
+  alp = par[1]
+  beta = par[2]
+  v = sqrt(beta/threshold)
+  u = threshold/(alp*beta)
+  R = 1-pnorm((sqrt(t/u)-sqrt(u/t))/v) 
+  return(R)
+}
+gamma_R(t = 70, threshold = 150,par = mle_par)
+
+# plot(gamma_R(t = 1:300, threshold = 150,par = mle_par),type = "l")
+```
+
+#### 案例分析
+
+导入数据，数据来源于[NASA Ames Prognostics Center of Excellence (PCoE)](https://c3.ndc.nasa.gov/dashlink/resources/133/)，但是找不到数据下载。最后是通过 [Github](https://github.com/psanabriaUC/BatteryDatasetImplementation) 获得。
+
+```{r}
+liion_data = read.csv("dataset/li-ion_battery_aging.csv")
+head(liion_data)
+```
+
+该数据是 NASA Ames Prognostics Center of Fxcellence (PCoF）对商用锂离子 18650 电池进行充、放电试验获得的一组蓄电池容量变化数据。试验过程中，锂离子在室温下 经历 3 种不同的运行剖面，即**充电**、**放电**和**测量 EIS**。
+
+充电是以**恒流模**式(CC)进行，在 1.5A 电流下直到电池电压达到4.2V，然后以**恒压模式**(CV)继续充电直到电流降到 20mA。
+
+放电也以恒流模式进行，放电电流为2A，直到电池电压降低到2.7V。
+
+重复充电和放电降导致蓄电池老化。对应的四个产品电池容量变化如下图所示：
+
+```{r}
+liion_data %>% 
+  ggplot(aes(id_cycle,Capacity,color = Battery)) + 
+  geom_line() + 
+  scale_color_viridis(discrete = T) +
+  xlab("Cycle") #+
+  #theme_bw() + theme(panel.grid = element_blank())
+```
+
+我们直接使用充放电循环次数作为时间刻度。由于随着时间的推移，电池容量呈下降趋势。而用Gamma来进行 RUL 预测方法是建立在退化过程有增加趋势的基础上的。为了应用该模型，对原始数据进行转换：用初始容量减去每个电池的所有容量数据。此时，失效阈值更改为初始容量减去 1.4 Ahr。
+
+```{r}
+max_battery = aggregate(liion_data$Capacity,by = list(liion_data$Battery),max)
+max_battery$threshold = max_battery$x - 1.4
+
+liion_data$Capacity_new = -liion_data$Capacity + rep(max_battery[,2],as.numeric(table(liion_data$Battery)))
+
+liion_data %>% 
+  ggplot(aes(id_cycle,Capacity_new,color = Battery)) + 
+  geom_line() + 
+  scale_color_viridis(discrete = T) +
+  xlab("Cycle") +
+  #theme_bw() + 
+  #theme(panel.grid = element_blank()) + #添加失效阈值
+  geom_hline(yintercept = max_battery$threshold[1],lty = 2) +
+    geom_hline(yintercept = max_battery$threshold[2],lty = 2) +
+      geom_hline(yintercept = max_battery$threshold[3],lty = 2) +
+      geom_hline(yintercept = max_battery$threshold[4],lty = 2) 
+```
+
+前面对数据进行了导入、处理以及可视化。接下来，使用经典的Gamma过程对其进行建模。
+
+```{r}
+liion_data %>% 
+  select(Capacity_new,Battery,id_cycle) %>% 
+  pivot_wider(
+    names_from = "Battery",
+    values_from = "Capacity_new",
+    values_fn = mean) -> liion_new
+```
+
+```{r}
+library(BB)
+gamma_alpmle = function(x, data_unit, data, t){
+    #x is alpha
+    delta_t = diff(t)
+    l = sum(delta_t*log(data_unit))-sum(t*log(data/(x*t)))-sum(delta_t*digamma(x*delta_t))
+    return(l)
+}
+
+degradation = liion_new[-1,2:4]
+group = ncol(degradation)
+epoch = nrow(degradation)
+increment = matrix(NA,epoch-1,group)
+for (i in 1:group){
+  dd = as.numeric(unlist(degradation[,i]))
+  increment[,i] = abs(diff(dd))
+}
+
+# 这里跟初值影响很大
+startx = 1.2
+mle_re = dfsane(startx,gamma_alpmle,data_unit = increment, data = degradation, t = 1:epoch, control=list(maxit=2500,trace = FALSE))
+
+mle_alp = mle_re$par
+mle_beta = sum(increment)/(mle_alp*group*max(t))
+mle_par = c(mle_alp,mle_beta)
+
+
+#这里要先试出这个函数的上下界，并且增量不应该出现复数
+# gamma_alpmle(1, data_unit = increment, data = degradation, t = 1:epoch)
+
+# mle_re = uniroot(gamma_alpmle, data_unit = increment, data = degradation, t = 1:epoch, lower = 0.0000001, upper = 100, tol = 1e-15, maxiter = 10000)
+# 
+# mle_alp = mle_re$root
+# mle_beta = sum(increment)/(mle_alp*group*max(t))
+# mle_par = c(mle_alp,mle_beta)
+
+
+```
+
+计算可靠度并绘图
+
+```{r}
+# 计算可靠度
+gamma_R(t = 0.05, threshold = max_battery$threshold, par = mle_par)
+time_region = 10
+# 绘制四个电池的可靠度图
+R_re = matrix(NA,time_region,4)
+for(i in 1:4){
+  R_re[,i] = gamma_R(t = 1:time_region, threshold = max_battery$threshold[i],par = mle_par)
+}
+R_re = as.data.frame(R_re)
+R_re = cbind(1:time_region,R_re)
+colnames(R_re) = c("time",max_battery[,1])
+R_re %>% pivot_longer(max_battery[,1], 
+                       names_to = "Group", 
+                       values_to = "y") %>% 
+  ggplot(aes(time,y,color = Group,shape = Group)) +
+  geom_line() + 
+  scale_color_viridis(discrete = T) +
+  labs(x = "Time", y = "Reliability")
+```

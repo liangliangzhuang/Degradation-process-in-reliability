@@ -875,7 +875,6 @@ plot_path(dat[[1]]) #print path plot
 
 #### 参数估计
 
-
 ##### 矩估计
 
 ```{r}

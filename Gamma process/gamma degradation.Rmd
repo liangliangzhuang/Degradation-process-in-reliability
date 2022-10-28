@@ -3,6 +3,7 @@ title: "Gamma"
 author: "Wenhui Wu"
 date: "2022-10-25"
 output: html_document
+
 ---
 
 ```{r setup, include=FALSE}
@@ -34,49 +35,64 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ## 退化轨道模型
 
 
-## Gamma退化过程模型
+## 4. Gamma退化过程模型
 
 Gamma 过程描述的退化过程是严格单调非负的，并且Gamma 过程是纯跳过程，其样本路径不连续，既可描述连续的微小冲击导致的缓慢退化，也可以描述大的冲击导致的大的损伤。
+当产品的退化过程是严格单调非负时, Wiener 过程不再适用。Gamma 过程具有独立非负增量,可以对该类退化过程进行建模。
 
-### 似然函数
 
-假设共有 $\mathrm{n}$ 个样品进行性能退化试验. 对于样品 $i$, 初始时刻 $t_0$ 性 能退化量为 $X_{i 0}=0$, 在时刻 $t_1, \cdots, t_{m_i}$ 测量产品的性能退化量, 得到 其测量值为 $X_{i 1}, \cdots, X_{i m_i}$. 记 $\Delta x_{i j}=X_{i j}-X_{i(j-1)}$ 是样品 $i$ 在时刻 $t_{j-1}$ 和 $t_j$ 之间的性能退化量, 由 Gamma 过程的独立增量性得到$\Delta X(t) \sim Ga(\alpha \Delta t_{ij},\beta)$。则似然函数为
 
+### 4.1 简单Gamma 退化过程
+
+
+称连续时间随机过程 $\{X(t), t \geqslant 0\}$ 是平稳 Gamma 过程 ${ }^{[2]}$, 若它满足以下性质:
+
+(1) $X(0)=0$ 以概率 1 成立。
+
+(2) $X(t)$ 具有平稳独立增量。
+
+(3) 对任意 $t \geqslant 0$ 和 $\Delta t, X(t+\Delta t)-X(t) \sim G a(\alpha \Delta t, \beta)$ 。
+
+    其中 $G a(\alpha, \beta)$ 是形状参数为 $\alpha>0$ 、尺度参数为 $\beta>0$ 的 Gamma 分布, 分布密度函数为
 $$
-l(\alpha, \beta)=\sum_{i=1}^n\left(\sum_{j=1}^{m_i}\left(\alpha \Delta t_{i j}-1\right) \ln \Delta x_{i j}-\alpha t_{i m_i} \ln \beta-\sum_{j=1}^{m_i} \ln \Gamma\left(\alpha \Delta t_{i j}\right)-\frac{x_{i m_i}}{\beta}\right)
+f(x \mid \alpha, \beta)=\frac{1}{\Gamma(\alpha) \beta^\alpha} \alpha^{\alpha-1} \mathrm{e}^{-x / \beta} I_{(0, \infty)}(x)
 $$
+并且 $\{X(t), t \geqslant 0\}$ 称为形状参数为 $\alpha>0$ 、尺度参数为 $\beta>0$ 的平稳 Gamma 过程。
 
-### 产品寿命
 
-因为Gamma 过程的退化是单调递增的，即$X(t) \sim Ga(\alpha t,\beta)$ ,因此**产品寿命**的分布可以通过退化量的转变关系获得。当给定产品退化失效阈值 $\ell$ 时，产品寿命 $T$ 的CDF和PDF为
+
+
+**产品寿命**
+
+因为Gamma 过程的退化是单调递增的，即$X(t) \sim Ga(\alpha t,\beta)$ ,因此**产品寿命**的分布可以直接通过退化量的转换获得。当给定产品退化失效阈值 $\ell$ 时，产品寿命 $T$ 的CDF和PDF为
 
 $$
 \begin{aligned}
-\mathrm{F}_{\mathrm{T}}(t) &=\mathrm{P}(\mathrm{T} \leqslant \mathrm{t})=\mathrm{P}(\mathrm{X}(\mathrm{t}) \geqslant \ell) \\
-&=\int_{\ell}^{\infty} \frac{1}{\Gamma(\alpha \mathrm{t}) \beta^{\alpha \mathrm{t}}} \mathrm{x}^{\alpha \mathrm{t}-1} \mathrm{e}^{-\frac{\mathrm{x}}{\beta}} \mathrm{dx} \\
-&=\frac{1}{\Gamma(\alpha \mathrm{t})} \int_{\frac{\ell}{\beta}}^{\infty} \xi^{\alpha \mathrm{t}-1} \mathrm{e}^{-\xi} \mathrm{d} \xi ,\\
-\mathrm{f}_{\mathrm{T}}(t) &=\frac{\mathrm{d}}{\mathrm{dt}} \frac{\Gamma(\alpha \mathrm{t}, 1 / \beta)}{\Gamma(\alpha \mathrm{t})} \\
-&=\frac{\alpha}{\Gamma(\alpha \mathrm{t})} \int_0^{\nu / \beta}\left[\ln (\xi)-\frac{\Gamma^{\prime}(\alpha \mathrm{t})}{\Gamma(\alpha \mathrm{t})}\right] \xi^{\alpha \mathrm{t}-1} \mathrm{e}^{-\xi} \mathrm{d} \xi.
+{F}_{{T}}(t) &={P}({T} \leqslant {t})={P}({X}({t}) \geqslant \ell) \\
+&=\int_{\ell}^{\infty} \frac{1}{\Gamma(\alpha {t}) \beta^{\alpha {t}}} {x}^{\alpha {t}-1} \mathrm{e}^{-\frac{{x}}{\beta}} {dx} \\
+&=\frac{1}{\Gamma(\alpha {t})} \int_{\frac{\ell}{\beta}}^{\infty} \xi^{\alpha {t}-1} \mathrm{e}^{-\xi} {d} \xi ,\\
+{f}_{{T}}(t) &=\frac{{d}}{{dt}} \frac{\Gamma(\alpha {t}, 1 / \beta)}{\Gamma(\alpha {t})} \\
+&=\frac{\alpha}{\Gamma(\alpha {t})} \int_0^{\nu / \beta}\left[\ln (\xi)-\frac{\Gamma^{\prime}(\alpha {t})}{\Gamma(\alpha {t})}\right] \xi^{\alpha {t}-1} \mathrm{e}^{-\xi} {d} \xi.
 \end{aligned}
 $$
 
-由于$\mathrm{f}_{\mathrm{T}}(\mathrm{t})$ 相当复杂，因此一般用B-S分布来逼近：
+由于${f}_{{T}}({t})$ 相当复杂，因此一般用B-S分布来逼近：
 
 $$
-\mathrm{F}(t ; \ell)=\Phi\left[\frac{1}{\mathrm{v}}\left(\sqrt{\frac{\mathrm{t}}{\mathrm{u}}}-\sqrt{\frac{\mathrm{u}}{\mathrm{t}}}\right)\right], \quad \mathrm{t}>0
-$$ 其中, $\Phi(\cdot)$ 为标准正态分布, $v=\sqrt{\frac{\beta}{\ell}}, u=\frac{\ell}{\beta \alpha}$. 相应的 PDF 为 $$
-\mathrm{f}(t ; \ell)=\frac{1}{2 \sqrt{2 \pi} \mathrm{uv}}\left[\left(\frac{\mathrm{u}}{\mathrm{t}}\right)^{\frac{1}{2}}+\left(\frac{\mathrm{u}}{\mathrm{t}}\right)^{\frac{3}{2}}\right] \exp \left[-\frac{1}{2 \mathrm{v}^2}\left(\frac{\mathrm{t}}{\mathrm{u}}-2+\frac{\mathrm{u}}{\mathrm{t}}\right)\right], \mathrm{t}>0
+{F}(t ; \ell)=\Phi\left[\frac{1}{{v}}\left(\sqrt{\frac{{t}}{{u}}}-\sqrt{\frac{{u}}{{t}}}\right)\right], \quad {t}>0.
+$$ 其中，$\Phi(\cdot)$ 为标准正态分布，$v=\sqrt{\frac{\beta}{\ell}}, u=\frac{\ell}{\beta \alpha}$. 相应的 PDF 为 $$
+{f}(t ; \ell)=\frac{1}{2 \sqrt{2 \pi} {uv}}\left[\left(\frac{{u}}{{t}}\right)^{\frac{1}{2}}+\left(\frac{{u}}{{t}}\right)^{\frac{3}{2}}\right] \exp \left[-\frac{1}{2 {v}^2}\left(\frac{{t}}{{u}}-2+\frac{{u}}{{t}}\right)\right], {t}>0.
 $$
 
-### 剩余寿命
+**剩余寿命**
 
 根据Gamma 过程的增量独立性，可以得到剩余寿命的分布 $$
 \begin{aligned}
-\mathrm{F}(t \mid s) &=\mathrm{P}\left(\mathrm{T} \leqslant t \mid \mathrm{X}(s)=\mathrm{x}_{s}\right) \\
-&=\mathrm{P}\left(X(t)-X(s) \geqslant \ell-x_{s}\right) \\
+{F}(t \mid s) &={P}\left({T} \leqslant t \mid {X}(s)={x}_{s}\right) \\
+&={P}\left(X(t)-X(s) \geqslant \ell-x_{s}\right) \\
 &=\frac{\Gamma\left(\alpha(t-s),\left(\ell-x_{s}\right) / \beta\right)}{\Gamma(\alpha(t-s))} .
 \end{aligned}
-$$ 这与将失效阈值由 $\ell$ 变为 $\ell-{x_s}$ 、时间 $t$ 变为 $t-s$ 情形的寿命分 布是一样的. 因此, 在给定当前状态情况下, 可以按照类似的途径更新剩余寿命.
+$$ 这与将失效阈值由 $\ell$ 变为 $\ell-{x_s}$ 、时间 $t$ 变为 $t-s$ 情形的寿命分布是一样的. 因此，在给定当前状态情况下，可以按照类似的途径更新剩余寿命.
 
 ```{r}
 library(ggplot2)
@@ -85,7 +101,7 @@ library(viridis)
 library(dplyr)
 ```
 
-### 数据模拟产生
+#### 4.1.1 数据模拟产生
 
 ```{r}
 # 数据模拟产生
@@ -115,7 +131,7 @@ sim_dat = function(group = 6, t = 1:200, para = c(4,2)){
 }
 ```
 
-#### 绘制退化路径图
+ 绘制退化路径图
 
 ```{r}
 # 绘制退化路径图
@@ -143,10 +159,53 @@ knitr::kable(head(dat[[1]])) #print table
 plot_path(dat[[1]]) #print path plot
 ```
 
-### 参数估计
+#### 4.1.2 统计推断
+
+假设共有 ${n}$ 个样品进行性能退化试验. 对于样品 $i$, 初始时刻 $t_0$ 性能退化量为 $X_{i 0}=0$, 在时刻 $t_1, \cdots, t_{m_i}$ 测量产品的性能退化量, 得到其测量值为 $X_{i 1}, \cdots, X_{i m_i}$. 记 $\Delta x_{i j}=X_{i j}-X_{i(j-1)}$ 是样品 $i$ 在时刻 $t_{j-1}$ 和 $t_j$ 之间的性能退化量, 由 Gamma 过程的独立增量性得到$\Delta X(t) \sim Ga(\alpha \Delta t_{ij},\beta)$。
+
+##### 4.1.2.1 矩估计
+
+令 $R_{i j}=\Delta X_{i j} / \Delta t_{i j}$, 则诸 $R_{i j}, j=1,2, \cdots, m_i, i=1,2, \cdots, n$ 服从形状参数为 $\alpha$ 、尺度参数为 $\beta$ 的 Gamma 分布, 且相互独立(根据 Gamma 过程独立增量特性, 以及各样品退化过程的独立性)。记 $M=\sum_{i=1}^n m_i$, 样本均值和样本方差为
+$$
+\begin{align}
+\bar{R}& =\frac{1}{M} \sum_{i=1}^n \sum_{j=1}^{m_i} R_{i j} \\
+S_R^2 & =\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i}\left[R_{i j}-\bar{R}\right]^2
+\end{align}
+$$
+易知
+$$
+\begin{aligned}
+E[\bar{R}] &=\alpha \beta \\
+{Var}[\bar{R}]&=\frac{1}{M^2} \alpha \beta^2 \sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right]\\
+\end{aligned}
+$$
+所以，
+
+$$
+\begin{aligned}
+E\left[S_R^2\right]&=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i} E\left[R_{i j}-\bar{R}\right]^2\\
+&=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i} E\left[R_{i j}-\alpha \beta-(\bar{R}-\alpha \beta)\right]^2 \\
+&=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i}\left\{{Var}\left[R_{i j}\right]^2-\frac{2}{m_i} {Var}\left[R_{i j}\right]+{Var}[\bar{R}]\right\} \\
+&=\frac{1}{M-1} \alpha \beta^2 \sum_{i=1}^n \sum_{j=1}^{m_i}\left[\frac{1}{\Delta t_{i j}}\right]
+\end{aligned}
+$$
+将待估参数和样本矩联系起来, 即令
+$$
+\left\{\begin{array}{l}
+\alpha \beta=\bar{R} \\
+\alpha \beta^2=M S_R^2 / \sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right]
+\end{array}\right.
+$$
+可得如下矩估计:
+$$
+\begin{gathered}
+\hat{\alpha}=\frac{\sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right] \bar{R}^2}{M S_R^2} \\
+\hat{\beta}=\frac{M S_R^2}{\sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right] \bar{R}}
+\end{gathered}
+$$
 
 
-#### 矩估计
+上述矩估计方法是基于退化速率的，金光还给出了基于退化量的矩估计（详见P128）,注意到当测量间隔都相同时，两个矩估计方法相同。
 
 ```{r}
 gamma_moment = function(data_unit, group , t ){
@@ -156,7 +215,8 @@ gamma_moment = function(data_unit, group , t ){
   M = group*max(t)
   Rij = data_unit/delta_t
   Rbar = sum(Rij)/M
-  MSR2 = sum((Rij-Rbar)^2)
+  SR2 = sum((Rij-Rbar)^2)/(M-1)
+  MSR2 = M*SR2
   tt = group*sum(1/delta_t)
   moment_alp = Rbar^2*tt/MSR2
   moment_beta = MSR2/(tt*Rbar)
@@ -178,7 +238,35 @@ moment_par
 
 ```
 
-#### 极大似然估计
+##### 4.1.2.2 极大似然估计
+
+
+由 Gamma 过程独立增量特性, 以及
+$$
+\Delta X_{i j} \sim G a\left(\alpha \Delta t_{i j}, \beta\right)=\frac{\left(\Delta x_{i j} / \beta\right)^{\alpha \Delta t_{i j}-1}}{\beta \Gamma\left(\alpha \Delta t_{i j}\right)} \mathrm{e}^{-\Delta x_{i j} / \beta}
+$$
+可以获得对数似然函数为
+$$
+l(\alpha, \beta)=\sum_{i=1}^n\left(\sum_{j=1}^{m_i}\left(\alpha \Delta t_{i j}-1\right) \ln \Delta x_{i j}-\alpha t_{i m_i} \ln \beta-\sum_{j=1}^{m_i} \ln \Gamma\left(\alpha \Delta t_{i j}\right)-\frac{x_{i m_i}}{\beta}\right)
+$$
+由极大似然估计原理, 令
+$$
+\left\{\begin{array}{l}
+\frac{\partial l}{\partial \alpha}=\sum_{i=1}^n \sum_{j=1}^{m_i} \Delta t_{i j}\left(\ln x_{i j}-\psi\left(\alpha \Delta t_{i j}\right)-\ln \beta\right)=0 \\
+\frac{\partial l}{\partial \beta}=\sum_{i=1}^n\left(\frac{x_{i m_i}}{\beta^2}-\frac{\alpha t_{i m_i}}{\beta}\right)=0
+\end{array}\right.
+$$
+式中 $\psi(u)$ 是 digamma 函数。
+$$
+\begin{aligned}
+&\hat{\beta}=\frac{\sum_{i=1}^n X_{i m_i}}{\alpha \sum_{i=1}^n t_{i m_i}}\\
+&\sum_{i=1}^n\left[\sum_{j=1}^{m_i} \Delta t_{i j} \ln \left(\Delta x_{i j}\right)-t_{i m_i} \ln \frac{x_{i m_i}}{\alpha t_{i m_i}}-\sum_{j=1}^{m_i} \Delta t_{i j} \psi\left(\alpha \Delta t_{i j}\right)\right]=0
+\end{aligned}
+$$
+
+
+
+
 
 ```{r}
 library(BB)
@@ -222,122 +310,390 @@ gamma_R(t = 70, threshold = 150,par = mle_par)
 # plot(gamma_R(t = 1:300, threshold = 150,par = mle_par),type = "l")
 ```
 
-#### 案例分析
 
-导入数据，数据来源于[NASA Ames Prognostics Center of Excellence (PCoE)](https://c3.ndc.nasa.gov/dashlink/resources/133/)，但是找不到数据下载。最后是通过 [Github](https://github.com/psanabriaUC/BatteryDatasetImplementation) 获得。
+
+##### 4.1.2.3 广义推断方法
+
+-   伽马 + 随机过程
+
+Wang, X. F., et al. (2021). "Degradation data analysis based on gamma process with random effects." European Journal of Operational Research 292(3): 1200-1208.
+
+-   伽马 + 加速寿命试验
+
+Jiang, P. H., et al. (2019). "Inference for constant-stress accelerated degradation test based on Gamma process." Applied Mathematical Modelling 67: 123-134.
+
+
+
+
+### 4.2 含协变量影响及随机效应情形
+
+随机效应反映个体差异的不确定性，协变量反映环境的影响。在基于 Gamma 过程的退化建模问题中, 随机效应通过混合尺度 Gamma 过程来描述。
+
+  - 尺度参数 $B$ 是服从 逆 Gamma 分布的随机变量, 即 $W=B^{-1} \sim G a\left(\delta, \gamma^{-1}\right)$; 在给定 $B=1 / w$ 的情况下, $X(t)$ 是 形状函数为 $\alpha(t)$ 、尺度参数为 $1 / w$ 的非平稳 Gamma 过程。
+  - 如果存在协变量效应, 假设协变量可以集成进入尺度参数, 从而尺度参数 $B$ 用 $B \xi(z)$ 代替, 这里 $z$ 表示协变量, $\xi(z)$ 表示协变量效应。
+  
+  
+  在这些假设下, 可以得到退化增量 $\Delta X_{i j}$ 的**联合分布密度**如下:
+$$
+\begin{aligned}
+&f\left(\Delta x_{i j}, j=1, \cdots, m_i, i=1, \cdots, n\right)=\int\left\{\prod_{i=1}^n \prod_{j=1}^{m_i} g a\left(\Delta x_{i j} ; w^{-1} \xi_{z_i}, \Delta \alpha_{i j}\right)\right\} g a\left(w ; \gamma^{-1}, \delta\right) \mathrm{d} w \\
+&=\prod_{i=1}^n\left[\frac{\Gamma\left(\delta+\alpha_{i m_i}\right)}{\Gamma(\delta) \prod_{j=1}^{m_i} \Gamma\left(\Delta \alpha_{i j}\right)} \frac{\left(\gamma \xi_{z_i}\right)^\delta \prod_{j=1}^{m_i}\left(\Delta x_{i j}\right)^{\Delta \alpha_{i j}-1}}{\left.\left(\gamma \xi_{z_i}+x_{i m_i}\right)^{\delta+\alpha_{i m_i}}\right]}\right] \\
+\end{aligned}
+$$
+式中 $x_{i m_i}=\sum_{j=1}^{m_i} \Delta x_{i j}$ ; $\alpha_{i m_i}=\sum_{j=1}^{m_i} \Delta \alpha_{i j}$ ; $ \xi_{z_i}=\xi\left(z_i\right) $; $z_i$ 是样品$i$  的协变量取值。
+
+
+通过极大化上述似然函数, 即可得到参数的极大似然估计。当然, 由于此似然函数非常复杂, 一般需要采用数值解法, 如牛顿 - 拉夫逊算法、拟牛顿法等。
+<!-- 除上述极大似然估计外, 文献 [24]还提出一种拟极大似然方法,其中形状函数采用非参数估计,随机尺度参数的分布参数采用截面极大似然法获得。感兴趣的读者可 参考相关文献。 -->
+
+
+
+  * 有些情况下需要估计个体的尺度参数 $\beta_i$ 。由于 $E\left[X_{i m_i} \mid B=\beta_i\right]=\beta_i \alpha_{i m_i}$, 因此一个有 效的估计是 $\tilde{\beta}_i=X_{i m_i} / \alpha_{i m_i}$ 。实际上, $\tilde{\beta}_i$ 是退化增量 $\Delta X_{i j}, j=1,2, \cdots, m_i$ 的最小方差线性无偏估计, 这由 $\Delta X_{i j} \mid \beta_i=\beta_i^2 \Delta \alpha_{i j}$ 可知。
+
+  * 另一种估计可由 $W=B^{-1}$ 与退化增量的联合分布得到, 这里对应的密度函数为 $\left\{\prod_{j=1}^{m_i} g a\left(\Delta x_{i j} ; w^{-1}, \Delta \alpha_{i j}\right)\right\} g a\left(w ; \gamma^{-1}, \delta\right)$, 从中可以得到给定 退化增量情况下 $W$ 的条件分布为 $G a\left\{\left(x_{i m_i}+\gamma\right)^{-1}, \alpha_{i m_i}+\delta\right\}$, 条件期望为
+$$
+E\left[W \mid \Delta x_{i 1}, \cdots, \Delta x_{i m_i}\right]=\left(\alpha_{i m_i}+\delta\right) /\left(x_{i m_i}+\gamma\right)
+$$
+将参数估计结果代人上式或上面的 $\tilde{\beta}_i$, 得到对应于个体产品的 $W$ 或 $B$ 的实现的估计。
+
+
+除了需要估计随机效应分布, 有时还关心随机效应是否显著的假设检验问题(即是否确实存在随机效应或个体差异).
+<!-- 。当 $\gamma \rightarrow \infty$ 以及 $\delta=\gamma \nu$, 其中 $\nu$ 是固定和有限 的, $W=B^{-1}$ 将聚集在均值 $\nu$ 周围, 而逆 Gamma 随机变量 $B$ 将聚集在 $1 / \nu$ 周围, 从而混 合尺度 Gamma 过程趋向于形状函数为 $\alpha(t)$ 、 (公共的) 尺度参数为 $\xi_z / \nu$ 的简单 Gamma 过程。因此, 为了检验随机效应, 相当于检验假设 $\mathrm{H}_0: \gamma=\infty$ 。 -->
+<!-- 文献 [1]提出一种计分统计量, 下面给出其构造过程。首先, 在零假设成立条件 下, 有 -->
+<!-- $$ -->
+<!-- \begin{gathered} -->
+<!-- E\left[x(t)-\alpha_t \xi_z / \nu\right]=0 \\ -->
+<!-- E\left[\left(x(t)-\alpha_t \xi_z / \nu\right)^2\right]=\alpha_t \xi_z^2 / \nu^2 \\ -->
+<!-- E\left[\left(x(t)-\alpha_t \xi_z / \nu\right)^4\right]=3\left(1+2 / \alpha_t\right) \alpha_t^2 \xi_x^4 / \nu^4 -->
+<!-- \end{gathered} -->
+<!-- $$ -->
+<!-- 下标 0 表示在零假设成立的条件下求期望。根据式 (4.9) 并考虑协变量过程 $\xi_z$, 可以 得到个体单元对应的似然函数为 -->
+<!-- $$ -->
+<!-- f\left(\Delta x_1, \cdots, \Delta x_m\right)=\frac{\Gamma\left(\delta+\alpha_m\right)}{\Gamma(\delta) \prod_{i=1}^m \Gamma\left(\Delta \alpha_i\right)} \frac{\left(\gamma \xi_z\right)^\delta \prod_{i=1}^m\left(\Delta x_i\right)^{\Delta \alpha_i-1}}{\left(\gamma \xi_z+x_m\right)^{\delta+\alpha_m}} -->
+<!-- $$ -->
+<!-- 式中: $x_m=\sum_{i=1}^m \Delta x_i, \alpha_m=\sum_{i=1}^m \Delta \alpha_i, m$ 为单元测量次数。 从而对数似然函数为 -->
+<!-- $$ -->
+<!-- \begin{aligned} -->
+<!-- l=& \ln \Gamma\left(\delta+\alpha_m\right)-\ln \Gamma(\delta)-\sum_{i=1}^m \ln \Gamma\left(\Delta \alpha_i\right) \\ -->
+<!-- &+\delta \ln \left(\gamma \xi_z\right)+\sum_{i=1}^m\left(\Delta \alpha_i-1\right) \ln \left(\Delta x_i\right)-\left(\delta+\alpha_m\right) \ln \left(\gamma \xi_z+x_m\right) -->
+<!-- \end{aligned} -->
+<!-- $$ -->
+
+
+<!-- 置 $\delta=\gamma \nu$, 则 -->
+<!-- $$ -->
+<!-- \begin{aligned} -->
+<!-- &\frac{\partial l}{\partial \gamma}=\nu\left\{1+\ln \left(\gamma \xi_z\right)+\psi\left(\gamma \nu+\alpha_m\right)-\psi(\gamma \nu)-\ln \left(\gamma \xi_z+x_m\right)\right\} \\ -->
+<!-- &-\xi_z\left(\gamma \nu+\alpha_m\right)\left(\gamma \xi_z+x_m\right)^{-1} -->
+<!-- \end{aligned} -->
+<!-- $$ -->
+<!-- 式中 $: \psi(\cdot)$ 是 digamma 函数。 -->
+<!-- 当 $\gamma \rightarrow \infty$ 时, $\partial l / \partial \gamma \rightarrow 0$, 因此需要更仔细的计算过程。由文献 $[43]$, 有 -->
+<!-- $$ -->
+<!-- \psi(u)=\ln u-\frac{1}{2 u}-\frac{1}{12 u^2}+O\left(u^{-3}\right) -->
+<!-- $$ -->
+<!-- 因此 -->
+<!-- $$ -->
+<!-- \frac{\partial l}{\partial \gamma}=\nu\left\{\ln \left(1-\frac{x_m}{\gamma \xi_z+x_m}\right)+\ln \left(1+\frac{\alpha_m}{\gamma \nu}\right)+\frac{\alpha_m}{2 \gamma \nu\left(\gamma \nu+\alpha_m\right)}+\frac{\alpha_m \frac{\xi_z}{\nu}-x_m}{\gamma \xi_z+x_m}+o\left(\gamma^{-3}\right)\right\} -->
+<!-- $$ -->
+<!-- 注意到对小的 $u, \ln (1+u)$ 可以近似为 $u-u^2 / 2+u^3 / 3-\cdots$, 在上面的算式中使用此近 似以简化对应项, 可以得到 $\partial l / \partial \gamma=A \gamma^{-2}+O\left(\gamma^{-3}\right)$, 其中 -->
+<!-- $$ -->
+<!-- A=-\frac{1}{2} \nu \xi_z^{-2}\left\{\left(x_m-\alpha_m \xi_z / \nu\right)^2-\alpha_m \xi_z^2 / \nu^2\right\} -->
+<!-- $$ -->
+<!-- $A$ 是用于检验随机效应的统计量。虽然它不是通过对数似然的一阶导数计算的原始计 分统计量, 它确实是导数的主要项, 因此也称作计分统计量。 -->
+
+<!-- 由式(4.29)看到, 式 (4.33) 括号中的项表示样本 $X\left(t_{i m_i}\right)$ 的方差与总体方差的差 异, 因此由式 (4.29)得到 -->
+<!-- $$ -->
+<!-- E_0[A]=-\frac{1}{2} \nu \xi_z^{-2}\left\{E_0\left[\left(x_m-\alpha_m \xi_z / \nu\right)^2\right]-\alpha_m \xi_z^2 / \nu^2\right\}=0 -->
+<!-- $$ -->
+<!-- 以及 -->
+<!-- $$ -->
+<!-- \begin{aligned} -->
+<!-- \operatorname{Var}_0[A] &=E_0\left[A^2\right] \\ -->
+<!-- &=\frac{1}{4} \nu^2 \xi_z^{-4}\left\{E_0\left[\left(X_m-\alpha_m \xi_z / \nu\right)^4-\alpha_m^2 \xi_z^4 / \nu^4\right]\right\} \\ -->
+<!-- &=\frac{\alpha_m\left(\alpha_m+3\right)}{2 \nu^2} -->
+<!-- \end{aligned} -->
+<!-- $$ -->
+<!-- 根据大数定理,计分统计量定义为 -->
+<!-- $$ -->
+<!-- U=\frac{A}{\sqrt{\operatorname{Var}_0(A)}} -->
+<!-- $$ -->
+<!-- 它服从标准正态分布。因此, 给定数据集, 可以估计 Gamma 过程的参数, 并使用估计值 计算计分统计量 $U_{\circ}$ 如果 $\mid U$ 的值大于正态分布上 $\alpha / 2$ 分位数 $z_{\alpha / 2}$, 其中 $\alpha$ 是显著性水 平, 则应该拒绝原假设, 也就是说此时应该考虑混合尺度 Gamma 过程。 -->
+
+
+
+
+### 4.3 有测量误差情形
+
+
+  - 当测量误差显著时, 此时, 观测数据是被噪声污染的 Gamma 过程的样本路径。
+
+  - 设在时刻 $t_{i j}$ 的测量值为 $y_{i j}=x_{i j}+\varepsilon_{i j}$, 其中 $x_{i j}$ 是实际退化, $\varepsilon_{i j}$ 是正态独立随机变量, 均值为 0 , 方差为 $\sigma_e^2$ 。
+  - 注意到 $\Delta y_{i j}=\Delta x_{i j}+\varepsilon_{i j}-\varepsilon_{i, j-1}$, 因此 虽然 $\Delta x_{i j}$ 是独立的, 观测到的增量 $\Delta y_{i j}$ 不再是独立的, 这导致似然函数的构造变得复杂。 
+  
+实际上, 对样品 $i$ 的观测数据, 有
+$$
+\left(\begin{array}{c}
+\Delta y_{i 1} \\
+\Delta y_{i 2} \\
+\vdots \\
+\Delta y_{i m_i}
+\end{array}\right)=\left(\begin{array}{c}
+\Delta x_{i 1} \\
+\Delta x_{i 2} \\
+\vdots \\
+\Delta x_{i m_i}
+\end{array}\right)+\left[\begin{array}{cccc}
+1 & & & \\
+-1 & 1 & & \\
+& \ddots & \ddots & \\
+& & -1 & 1
+\end{array}\right]\left(\begin{array}{c}
+\varepsilon_{i 1} \\
+\varepsilon_{i 2} \\
+\vdots \\
+\varepsilon_{i m_i}
+\end{array}\right)
+$$
+或者 $\Delta \boldsymbol{y}_i=\Delta \boldsymbol{x}_i+C \varepsilon_i=\Delta \boldsymbol{x}_i+\eta_i$, 其中 $\eta_i \sim N\left(0, \sigma^2 \Sigma\right)$, 而且
+$$
+\sum=C C^{\prime}=\left[\begin{array}{ccccc}
+1 & -1 & & & \\
+-1 & 2 & -1 & & \\
+& \ddots & \ddots & \ddots & \\
+& & -1 & 2 & -1 \\
+& & & -1 & 2
+\end{array}\right]
+$$
+也就是说, $\eta_{i 1}, \cdots, \eta_{i m_i}$ 并不是相互独立的。因此, 这时的似然函数难以解析求解, 一般 需要采用数值方法。
+
+
+**更一般的情形**
+
+下面考虑一种更加一般的情形, 并采用 MC 方法得到模型参数的估计。对实际退化进行观测, 观测值满足如下模型:
+$$
+Y(t)=F(X(t))+\varepsilon
+$$
+这里观测噪声 $\varepsilon \sim N\left(0, \sigma^2\right)$ 。显然, 有测量误 差是这里的特殊情形, 此时只要取 $F(t)=t$ 即可。在基于退化的可靠性建模问题中, 称 $X(t)$ 为直接退化量 (Direct Indicator), 而 $Y(t)$ 称为间接退化量 (Indirect Indicator)。下 面的计算过程假设 $F(X(t))=c X(t)^d$ 。
+
+假设可以在 $t_1, t_2, \cdots, t_n$ 时刻进行观测, $n$ 是观测次数。
+<!-- 在第 $i$ 个观测时刻获得的直接和间接退化量记为 $x_i$ 和 $y_i$ 。进一步假设由于测量困难等原因, 只能观测到一部分直接退化量, 但是所有间接退化量都可以观测得到 (这种情况可称为不平衡测量)。 -->
+函数 $I_{\mathrm{obv}}(\cdot)$ 定义为
+$$
+I_{\mathrm{obv}}(i)= \begin{cases}0, & x_i \text { 不可观测 } \\ 1, & x_i \text { 可观测 }\end{cases}
+$$
+用来表示一个观测量是直接退化量。第 $l$ 个可观测的直接退化量的观测时间指标记为
+$k_l, l=1,2, \cdots, m$, 其中 $m$ 是观测的直接退化量的个数。显然 $I_{\mathrm{obv}}\left(k_l\right)=1, l=1,2, \cdots$, $m$ 。假设至少能够观测到一个直接退化量, 即 $m>0$ 。下面采用 EM 算法来解决参数估 计问题。
+假设可观测的直接退化量 $x_{k_{1, m}}=\left\{x_{k_l}: l=1,2, \cdots, m\right\}$ 以及它们对应的间接退化量 $y_{k_{1, m}}=\left\{y_{k_l}: l=1,2, \cdots, m\right\}$, 则基于 $x_{k_1, m}$ 和 $y_{k_{1, m}}$ 的完整似然函数, 可以得到参数的一个极 大似然估计, 将该估计作为模型参数的初始值。
+
+**EM算法**
+
+在 $\mathrm{EM}$ 算法的 $\mathrm{E}$ 步, 需要估计对应于所有 $n$ 个时刻的可能观测数据的完整的似然 函数的期望。完整似然函数可以分为两个部分:
+$$
+E\left[\ln \left(f\left(x_{1 ; n}, y_{1 ; n} \mid \boldsymbol{\theta}\right)\right)\right]=E\left[\ln \left(f\left(x_{1 ; n} \mid \boldsymbol{\theta}_1\right)\right)\right]+E\left[\ln \left(f\left(y_{1 ; n} \mid \boldsymbol{\theta}_2, x_{1 ; n}\right)\right)\right]
+$$
+式中: 参数 $\boldsymbol{\theta} 、 \boldsymbol{\theta}_1$ 和 $\boldsymbol{\theta}_2$ 表示待估参数向量, 其中 $\boldsymbol{\theta}=(a, b, \beta, c, d, \boldsymbol{\sigma}), \boldsymbol{\theta}_1=(a, b, \boldsymbol{\beta}), \boldsymbol{\theta}_2=$ $(c, d, \sigma)$ 。式 (4.37) 的两个部分可以进一步计算如下:
+$$
+\begin{aligned}
+& E\left[\ln \left(f\left(x_{1 ; n} \mid \boldsymbol{\theta}_1\right)\right)\right] \\
+=& E\left(\ln \left(\prod_{i=2}^n g a\left(v_i ; u_i, \beta\right)\right)\right) \\
+=& \sum_{i=2}^n\left(-u_i \ln \beta-\ln \Gamma\left(u_i\right)+\left(u_i-1\right) E\left(\ln \left(v_i\right)\right)-\left(E\left(X_i\right)-E\left(X_{i-1}\right)\right) / \beta\right)
+\end{aligned}
+$$
+和
+$$
+\begin{aligned}
+& E\left[\ln \left(f\left(y_{1: n} \mid \boldsymbol{\theta}_2, x_{1: n}\right)\right)\right] \\
+=&-n \ln \sigma-\frac{n}{2} \ln 2 \pi-\frac{1}{2 \sigma 2} \sum_{i=1}^n\left(y_i^2-2 y_i c E\left(X_i^d\right)+c^2 E\left(X_i^{2 d}\right)\right)
+\end{aligned}
+$$
+式中 $: v_i=x_i-x_{i-1}, i=2,3, \cdots, n ; u_i=a t_i^b-a t_{i-1}^b, i=2,3, \cdots, n_{\text {。 }}$
+
+式中的 4 个期望值 $E\left(X_i\right) 、 E\left(X_i^d\right) 、 E\left(X_i^{2 d}\right)$ 以及 $E\left(\ln \left(\nu_i\right)\right)$ 通过下面的仿真方法(粒子光滑算法) 获得。
+
+
+**仿真方法(粒子光滑算法)**
+
+1. 首先辨识基于 Gamma 过程的状态空间模型的状态转移过程。
+<!-- 根据 Gamma 桥性质,在获得直接退化量的观测数据之后, 系统的退化过程从Gamma过程变为混合随机过程,该混合随机过程为 -->
+$$
+\begin{aligned}
+&f\left(X_i \mid X_{1: n-1}, X_{k_{1, m}}\right) \\
+&= \begin{cases}f\left(X_i \mid X_{i-1}, X_{n_i}\right)=b e\left(\frac{x_i-x_{i-1}}{x_{n_i}-x_{i-1}} ; \alpha\left(t_i\right)-\alpha\left(t_{i-1}\right), \alpha\left(t_{n_i}\right)-\alpha\left(t_i\right)\right), \\
+& I_{\mathrm{obv}}(i)=0, i<k_m \\
+f\left(X_i \mid X_{i-1}\right)=g a\left(x_i-x_{i-1} ; \alpha\left(t_i\right)-\alpha\left(t_{i-1}\right), \beta\right), & I_{\mathrm{obv}}(i)=0, i>k_m\end{cases}
+\end{aligned}
+$$
+
+式中: $n_i$ 是给定当前观测时间指标 $i$ 的条件下,下一个直接观测退化量的观测时间指 标, 即 $n_i=\min \left\{u ; u>i, I_{\mathrm{obv}}(u)=1\right\}, i<k_m ; b e(\because ; \alpha, \beta)$ 是参数为 $\alpha$ 和 $\beta$ 的 Beta 分布的概率密度函数。
+<!-- (这里利用了 Gamma 桥性质。当直接退化量是 Wiener 过程时, 可用 Brownian 桥性质构造类似的混合随机过程; 更一般的情况可以通过 Bayesian 定理构造 验后随机过程)。 -->
+
+
+2. 从该混合随机过程抽取 $N_f$ 个样本序列, 记为 $s_{1: n}^{1: N_f}=\left\{s_i^j: i=1,2, \cdots, n, j=1,2, \cdots\right.$, $\left.N_f\right\}$, 
+<!-- 使用这 $N_f$ 个序列可以得到式 (4.50) 和式 (4.51) 中的期望值的估计: -->
+$$
+\begin{cases}E\left(X_i\right)=\frac{1}{N_f} \sum_{j=1}^{N_f} s_i^j, & E\left(X_i^{2 d}\right)=\frac{1}{N_f} \sum_{j=1}^{N_f}\left(s_i^j\right)^{2 d} \\ E\left(X_i^d\right)=\frac{1}{N_f} \sum_{j=1}^{N_f}\left(s_i^j\right)^d, & E\left(\ln \left(X_i-X_{i-1}\right)\right)=\frac{1}{N_f} \sum_{j=1}^{N_f} \ln \left(s_i^j-s_{i-1}^j\right)\end{cases}
+$$
+一旦获得了完整似然函数的期望, 就可以进行最大化获得对应的参数的“条件” 似然估计。
+
+
+<!-- 基于 Gamma 过程的状态空间模型的参数估计结束后, 应该计算协方差矩阵以便得 到置信区间估计。文献 [44]基于粒子光滑得到计算协方差矩阵的方法, 其中观测的信 息阵为 -->
+<!-- $$ -->
+<!-- \begin{gathered} -->
+<!-- -\frac{\partial^2 \ln f\left(y_{1: n}, x_{k_{1, m}} \mid \boldsymbol{\theta}\right)}{\partial \theta \partial \theta^{\mathrm{T}}} \approx \frac{1}{N_f} \sum_{j=1}^{N_f}-\frac{\partial^2 \ln f\left(s_{1: n}^j, x_{1: n} \mid \boldsymbol{\theta}\right)}{\partial \theta \partial \theta^{\mathrm{T}}} \\ -->
+<!-- -\frac{1}{N_f} \sum_{j=1}^{N_f} \frac{\partial \ln f\left(s_{1: n}^j, x_{1: n} \mid \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}} \frac{\partial \ln f\left(s_{1: n}^j, x_{1: n} \mid \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}^{\mathrm{T}}} \\ -->
+<!-- +\left(\frac{1}{N_f} \sum_{j=1}^{N_f}-\frac{\partial \ln f\left(s_{1: n}^j, x_{1: n} \mid \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}}\right)\left(\frac{1}{N_f} \sum_{j=1}^{N_f}-\frac{\partial \ln f\left(s_{1: n}^j, x_{1: n} \mid \boldsymbol{\theta}\right)}{\partial \boldsymbol{\theta}^{\mathrm{T}}}\right) -->
+<!-- \end{gathered} -->
+<!-- $$ -->
+<!-- 式中 $: s_{1, n}^j$ 是光滑粒子的第 $j$ 个序列。 -->
+
+
+<!-- **基于粒子光滑的序贯抽样方法** -->
+
+<!-- 1. 首先,假设基于直到第 $i$ 个观测时刻 $t_i$ 的间接退化量 $y_{1: i}$ 得到 $t_i$ 时刻的直接退化量分布, 表示为 -->
+<!-- $$ -->
+<!-- f\left(x_i \mid y_{1: i}\right) \approx \sum_{j=1}^{N_f} w_i^j \delta\left(x_i-x_i^j\right), \quad i=1,2, \cdots, n -->
+<!-- $$ -->
+<!-- 式中: $\delta(\cdot)$ 是狄拉克函数, 定义为 -->
+<!-- $$ -->
+<!-- \delta\left(x-x^j\right)= \begin{cases}0, & x \neq x^j \\ 1, & x=x^j\end{cases} -->
+<!-- $$ -->
+
+<!-- 2. 随机数 $\left\{x_i^j ; j=1, \cdots, N_f \mid\right.$ 被称作粒子, 它们一般通过一个重要性分布 $q\left(x_i^j \mid x_{i-1}^j, y_i\right)$ 抽取, 并且对应的权重 $\left\{w_i^j ; j=1, \cdots, N_f\right\}$ 可以递推计算如下: -->
+<!-- $$ -->
+<!-- w_i^j \propto w_{i-1}^j \frac{f\left(y_i \mid x_i^j\right) f\left(x_i^j \mid x_{i-1}^j\right)}{q\left(x_i^j \mid x_{i-1}^j, y_i\right)} -->
+<!-- $$ -->
+
+
+<!-- 显然, 在上述逼近验后分布的过程中, 只用了截止到当前时刻的观测值, 称为粒子 滤波过程。粒子光滑考虑了整个观测序列, 因此具有更好的近似精度。 $\operatorname{Simon}^{[44]}$ 提出 的后向模拟粒子光滑, 是基于粒子滤波(即 $x_{1: n}^{1: N_f}=\left\{x_i^j ; i=1,2, \cdots, n, j=1,2, \cdots, N_f\right\}$ ) 的。 粒子光滑的递推算法为 -->
+<!-- $$ -->
+<!-- w_{i i i+1}^{j, u} \propto \frac{w_i^u f\left(s_{i+1}^j \mid x_i^u\right)}{\sum_{i=1}^{N_f} w_i^v f\left(s_{i+1}^j \mid x_i^{\varepsilon}\right)}, \quad u=1,2, \cdots, N_f, i=1,2, \cdots, n-1 -->
+<!-- $$ -->
+<!-- 式中: $w_{i i i+1}^{j, u}$ 表示在第 $i$ 步的对应于第 $i+1$ 步的第 $j$ 个光滑粒子的第 $u$ 个滤波粒子的 权重。 -->
+<!-- 然后根据权重 $w_{i l i+1}^{j, 1, N_f}=\left\{w_{i i i+1}^{j, u} ; u=1,2, \cdots, N_f\right\}$ 从 $x_i^{1, N_f}$ 重采样得到随机数 $s_i^j$, 在第 $i$ 个时刻状态的分布就采用光滑粒子 $\left\{s_i^j ; j=1,2, \cdots, N_f\right\}$ 近似。 -->
+<!-- 回到退化过程,滤波粒子的权重按如下方式递推地更新: -->
+<!-- $$ -->
+<!-- w_i^j \propto \begin{cases}w_{i-1}^j \frac{f\left(y_i \mid x_i^j\right) f\left(x_i^j \mid x_{i-1}^j, x_{n_i}\right)}{q\left(x_i^j \mid x_{i-1}^j, y_i, x_{n_i}\right)}, & i<k_m \\ w_{i-1}^j \frac{f\left(y_i \mid x_i^j\right) f\left(x_i^j \mid x_{i-1}^j\right)}{q\left(x_i^j \mid x_{i-1}^j, y_i\right)}, & i>k_m\end{cases} -->
+<!-- $$ -->
+<!-- 两个重要性密度, 即 $q\left(x_i^j \mid x_{i-1}^j, y_i, x_{n_i}\right)$ 和 $q\left(x_i^j \mid x_{i-1}^j, y_i\right)$, 服从式 (4.40) 中的两个方程, 即 $f\left(x_i \mid x_{i-1}, x_{n_i}\right)$ 和 $f\left(x_i \mid x_{i-1}\right)$ 。在时间点 $t_{k_{1, m}}=\left\{t_{k_l} ; l=1,2, \cdots, m\right\}$ 直接退化量是已知的, 所有 $N_f$ 个粒子就直接设置为观测到的直接退化量 $x_{k_{1, m}}$ 。在其他时刻采用序贯重要性 重采样(SIR)算法。类似地, 式 (4.44) 中光滑粒子的递推权重计算公式修正为 -->
+<!-- $$ -->
+<!-- w_{i i+1}^{j, u} \propto \begin{cases}\frac{w_i^u f\left(s_{i+1}^j \mid x_i^u, x_{n_{i+1}}\right)}{\sum_{f=1}^{N_f} w_i^v f\left(s_{i+1}^j \mid x_i^v, x_{n_{i+1}}\right)}, & i<k_m \\ \frac{w_i^u f\left(s_{i+1}^j \mid x_i^u\right)}{\sum_{v=1}^{N_f} w_i^v f\left(s_{i+1}^j \mid x_i^v\right)}, & i>k_m\end{cases} -->
+<!-- $$ -->
+<!-- 式 (4.46) 中的两个部分 $f\left(s_{i+1}^j \mid x_i^u, x_{n_{i+1}}\right)$ 和 $f\left(s_{i+1}^j \mid x_i^u\right)$ 满足式 (4.40) 中的两个方 程。在时刻 $t_i$, 若 $I_{\mathrm{obv}}(i)=1$ 或 $I_{\mathrm{obv}}(i+1)=1$, 粒子滤波结果直接取为粒子光滑的结果; 在其他时刻,粒子光滑通过后向模拟算法得到。 -->
+
+
+
+### 4.4 案例分析
+
+
+
+#### 4.4.1 wear data
+> 数据来自： Ye Z.S., et al. (2014). "Semiparametric Estimation of Gamma Processes for Deteriorating Products" Technometrics 
+
+Wear of a tire tread is a major cause of tire failures. To assess the wear behavior of a batch of tire treads from a factory, a bus park in South Korea sampled some tires installed on buses of the same version. Degradation level of each tire was measured, and its time in service (in thousands of kilometers) was retrospected. 
+
 
 ```{r}
-liion_data = read.csv("dataset/li-ion_battery_aging.csv")
-head(liion_data)
+wear_dat = read.csv("dataset/wear data.csv")
+knitr::kable(head(wear_dat))
+wear_dat$Unit = as.factor(wear_dat$Unit)
 ```
 
-该数据是 NASA Ames Prognostics Center of Fxcellence (PCoF）对商用锂离子 18650 电池进行充、放电试验获得的一组蓄电池容量变化数据。试验过程中，锂离子在室温下 经历 3 种不同的运行剖面，即**充电**、**放电**和**测量 EIS**。
 
-充电是以**恒流模**式(CC)进行，在 1.5A 电流下直到电池电压达到4.2V，然后以**恒压模式**(CV)继续充电直到电流降到 20mA。
-
-放电也以恒流模式进行，放电电流为2A，直到电池电压降低到2.7V。
-
-重复充电和放电降导致蓄电池老化。对应的四个产品电池容量变化如下图所示：
 
 ```{r}
-liion_data %>% 
-  ggplot(aes(id_cycle,Capacity,color = Battery)) + 
-  geom_line() + 
+wear_dat %>% ggplot(aes(time,wear,color = Unit)) +
+  geom_line(size = 0.1) + 
+  geom_point(size = 0.8) + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank()) +
   scale_color_viridis(discrete = T) +
-  xlab("Cycle") #+
-  #theme_bw() + theme(panel.grid = element_blank())
+  theme(legend.position = 'none') +
+  labs(x = "time", y = "crack")
 ```
 
-我们直接使用充放电循环次数作为时间刻度。由于随着时间的推移，电池容量呈下降趋势。而用Gamma来进行 RUL 预测方法是建立在退化过程有增加趋势的基础上的。为了应用该模型，对原始数据进行转换：用初始容量减去每个电池的所有容量数据。此时，失效阈值更改为初始容量减去 1.4 Ahr。
+#### 4.4.2 Crack of Titanium
+
+A manufacturer of Titanium (Ti) Grade has the highest ultimate strength of the pure Ti Grades. It is used in many applications where high strength is required. However, under high stress and high cycle fatigue, it develops cracks that lead to failures. In order to conduct a RDT, the manufacturer machined 10 bars with 0.5” diameter and subjected them to high stress and made notches (of the same dimensions) in all the bars to accelerate the crack growth. The crack length is measured every five days and is recoded for the ten units as shown in Table 6.10. The measurements are expressed in 0.001 mm but scaled for calculation purposes. Determine the number of days when the crack threshold reaches 2mm (1500 in the measurement scale)
 
 ```{r}
-max_battery = aggregate(liion_data$Capacity,by = list(liion_data$Battery),max)
-max_battery$threshold = max_battery$x - 1.4
+ti_dat = read.csv("dataset/Crack_Length_Data_of_Ten_Bar_of_Ti.csv")
+knitr::kable(head(ti_dat))
+ti_dat$Unit = as.factor(ti_dat$Unit)
+```
 
-liion_data$Capacity_new = -liion_data$Capacity + rep(max_battery[,2],as.numeric(table(liion_data$Battery)))
 
-liion_data %>% 
-  ggplot(aes(id_cycle,Capacity_new,color = Battery)) + 
-  geom_line() + 
+
+
+```{r}
+ti_dat %>% ggplot(aes(time,crack_length,color = Unit)) +
+  geom_line(size = 0.1) + 
+  geom_point(size = 0.8) + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank()) +
   scale_color_viridis(discrete = T) +
-  xlab("Cycle") +
-  #theme_bw() + 
-  #theme(panel.grid = element_blank()) + #添加失效阈值
-  geom_hline(yintercept = max_battery$threshold[1],lty = 2) +
-    geom_hline(yintercept = max_battery$threshold[2],lty = 2) +
-      geom_hline(yintercept = max_battery$threshold[3],lty = 2) +
-      geom_hline(yintercept = max_battery$threshold[4],lty = 2) 
+  theme(legend.position = 'none') +
+  labs(x = "time", y = "crack length")
 ```
 
-前面对数据进行了导入、处理以及可视化。接下来，使用经典的Gamma过程对其进行建模。
+#### 4.4.3 Lithium-ion batteries
+
+
+Lithium-ion batteries are widely used in many applications and consumer products including electric vehicles because of their high energy density and power capability. However, the long-term performance (capacity to provide the power) decreases with number of charge and discharge cycles.  A degradation test is conducted on four battery cells with initial capacities in Ah (Ampere hours, which is defined as is the amount of energy charge in a battery that will allow one ampere of current to flow for one hour). The cells are discharged and charged, and the battery capacity is measured after the accumulation of a number of charge-discharge cycles. The battery is considered failed when its capacity is $80 \%$ of the original capacity. Use the first 25 observations of each cell and develop a general degradation model. Then utilize the model to predict the capacities at the remaining 17 cycles and calculate the error prediction of the models. Note that the original capacity corresponds to zero cycles.
 
 ```{r}
-liion_data %>% 
-  select(Capacity_new,Battery,id_cycle) %>% 
-  pivot_wider(
-    names_from = "Battery",
-    values_from = "Capacity_new",
-    values_fn = mean) -> liion_new
+li_dat = read.csv("dataset/Lithium-ion batteries.csv")
+knitr::kable(head(li_dat))
+# ti_dat$Unit = as.factor(li_dat$Unit)
 ```
 
-```{r}
-library(BB)
-gamma_alpmle = function(x, data_unit, data, t){
-    #x is alpha
-    delta_t = diff(t)
-    l = sum(delta_t*log(data_unit))-sum(t*log(data/(x*t)))-sum(delta_t*digamma(x*delta_t))
-    return(l)
-}
-
-degradation = liion_new[-1,2:4]
-group = ncol(degradation)
-epoch = nrow(degradation)
-increment = matrix(NA,epoch-1,group)
-for (i in 1:group){
-  dd = as.numeric(unlist(degradation[,i]))
-  increment[,i] = abs(diff(dd))
-}
-
-# 这里跟初值影响很大
-startx = 1.2
-mle_re = dfsane(startx,gamma_alpmle,data_unit = increment, data = degradation, t = 1:epoch, control=list(maxit=2500,trace = FALSE))
-
-mle_alp = mle_re$par
-mle_beta = sum(increment)/(mle_alp*group*max(t))
-mle_par = c(mle_alp,mle_beta)
-
-
-#这里要先试出这个函数的上下界，并且增量不应该出现复数
-# gamma_alpmle(1, data_unit = increment, data = degradation, t = 1:epoch)
-
-# mle_re = uniroot(gamma_alpmle, data_unit = increment, data = degradation, t = 1:epoch, lower = 0.0000001, upper = 100, tol = 1e-15, maxiter = 10000)
-# 
-# mle_alp = mle_re$root
-# mle_beta = sum(increment)/(mle_alp*group*max(t))
-# mle_par = c(mle_alp,mle_beta)
-
-
-```
-
-计算可靠度并绘图
 
 ```{r}
-# 计算可靠度
-gamma_R(t = 0.05, threshold = max_battery$threshold, par = mle_par)
-time_region = 10
-# 绘制四个电池的可靠度图
-R_re = matrix(NA,time_region,4)
-for(i in 1:4){
-  R_re[,i] = gamma_R(t = 1:time_region, threshold = max_battery$threshold[i],par = mle_par)
-}
-R_re = as.data.frame(R_re)
-R_re = cbind(1:time_region,R_re)
-colnames(R_re) = c("time",max_battery[,1])
-R_re %>% pivot_longer(max_battery[,1], 
-                       names_to = "Group", 
-                       values_to = "y") %>% 
-  ggplot(aes(time,y,color = Group,shape = Group)) +
-  geom_line() + 
+li_dat %>% ggplot(aes(cycles,Cell.1,Cell.2,Cell.3,Cell.4)) +
+  geom_line(aes(cycles,Cell.1),size = 0.1) +        geom_line(aes(cycles,Cell.2),size = 0.1) + 
+    geom_line(aes(cycles,Cell.3),size = 0.1) +   geom_line(aes(cycles,Cell.4),size = 0.1) + 
+  geom_point(size = 0.8) + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank()) +
   scale_color_viridis(discrete = T) +
-  labs(x = "Time", y = "Reliability")
+  theme(legend.position = 'none') +
+  labs(x = "time", y = "crack length")
 ```
+
+
+#### 4.4.4 fatigue crack data
+> 数据来自： Meeker, W. Q. (1998). Statistical Methods for Reliability Data
+
+Fatigue Crack-Size Data gives the size of fatigue cracks as a function of number of cycles of applied stress for 21 test specimens. The data were collected to obtain information on crack growth rates for the alloy. Usually, we will refer to these data as Alloy-A and assume that a crack of size $1.6$ inches is considered to be a failure.
+
+![](Fatigue Crack Growth Data.jpg)
+
+```{r}
+fatigue_dat = read.csv("dataset/Fatigue Crack Growth Data.csv")
+knitr::kable(head(fatigue_dat))
+fatigue_dat$path = as.factor(fatigue_dat$path)
+```
+
+
+
+
+
+
+
+```{r}
+fatigue_dat %>% ggplot(aes(cycles,crack,color = path)) +
+  geom_line(size = 0.1) + 
+  geom_point(size = 0.8) + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank()) +
+  scale_color_viridis(discrete = T) +
+  theme(legend.position = 'none') +
+  labs(x = "cycles", y = "crack")
+```
+
+
+
+
+
+
+

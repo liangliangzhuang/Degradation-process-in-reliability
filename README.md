@@ -11,7 +11,7 @@
 
 2. 制作一个相关 R 包（名字初定为：Dagradation Process in Reliability, DPIR）；
 
-3. 整理成可发表的论文，预计发表 2 篇 SCI 论文。
+3. 整理成可发表的论文，预计~~发表 2 篇 SCI 论文~~。
 
 ## 重大进度表 :+1:
 

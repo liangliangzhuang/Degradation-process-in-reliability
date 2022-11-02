@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.189">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="庄亮亮">
+
+<title>逆高斯退化过程</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="IG-notebook_files/libs/clipboard/clipboard.min.js"></script>
+<script src="IG-notebook_files/libs/quarto-html/quarto.js"></script>
+<script src="IG-notebook_files/libs/quarto-html/popper.min.js"></script>
+<script src="IG-notebook_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="IG-notebook_files/libs/quarto-html/anchor.min.js"></script>
+<link href="IG-notebook_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<script src="IG-notebook_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="IG-notebook_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="IG-notebook_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">目录</h2>
+   
+  <ul>
+  <li><a href="#ig-退化过程模型" id="toc-ig-退化过程模型" class="nav-link active" data-scroll-target="#ig-退化过程模型">1. IG 退化过程模型</a>
+  <ul>
+  <li><a href="#经典的-ig-过程" id="toc-经典的-ig-过程" class="nav-link" data-scroll-target="#经典的-ig-过程">3.1 经典的 IG 过程</a>
+  <ul>
+  <li><a href="#数据模拟产生" id="toc-数据模拟产生" class="nav-link" data-scroll-target="#数据模拟产生">3.1.1 数据模拟产生</a></li>
+  <li><a href="#统计推断" id="toc-统计推断" class="nav-link" data-scroll-target="#统计推断">3.1.2 统计推断</a>
+  <ul class="collapse">
+  <li><a href="#极大似然估计" id="toc-极大似然估计" class="nav-link" data-scroll-target="#极大似然估计">3.1.2.1 极大似然估计</a></li>
+  <li><a href="#客观贝叶斯分析" id="toc-客观贝叶斯分析" class="nav-link" data-scroll-target="#客观贝叶斯分析">3.1.2.2 客观贝叶斯分析</a></li>
+  <li><a href="#广义推断方法" id="toc-广义推断方法" class="nav-link" data-scroll-target="#广义推断方法">3.1.2.3 广义推断方法</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#案例分析" id="toc-案例分析" class="nav-link" data-scroll-target="#案例分析">3.3 案例分析</a>
+  <ul>
+  <li><a href="#激光器件-laser-数据集" id="toc-激光器件-laser-数据集" class="nav-link" data-scroll-target="#激光器件-laser-数据集">激光器件 Laser 数据集</a></li>
+  <li><a href="#防辐射-anti-radiation-数据集" id="toc-防辐射-anti-radiation-数据集" class="nav-link" data-scroll-target="#防辐射-anti-radiation-数据集">防辐射 Anti-radiation 数据集</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">逆高斯退化过程</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>庄亮亮 </p>
+          </div>
+  </div>
+    
+    
+  </div>
+  
+
+</header>
+
+<section id="ig-退化过程模型" class="level2">
+<h2 class="anchored" data-anchor-id="ig-退化过程模型">1. IG 退化过程模型</h2>
+<blockquote class="blockquote">
+<p>来源：Ye, Z.-S. and M. Xie (2015). “Stochastic modelling and analysis of degradation for highly reliable products.” Applied Stochastic Models in Business and Industry 31(1): 16-32.</p>
+</blockquote>
+<p>虽然 Wiener 过程和 Gamma 过程在退化建模中得到了广泛的应用，但这两种模型在实际应用中无法拟合大量退化数据。当这两个过程失败时，另一个选择是逆高斯(inverse Gaussian, IG)过程。</p>
+<p>如果过程<span class="math inline">\(\{Y(t);t \geqslant 0\}\)</span>具有独立的 IG 分布增量，则称为基本的 IG 过程，即<span class="math inline">\(Y(t) \sim \operatorname{IG}\left(\mu \Lambda(t)， \lambda \Lambda^2(t)\right)\)</span>，其中<span class="math inline">\(\Lambda(t)\)</span>是非负且单调递增的。IG <span class="math inline">\((a, b), a, b&gt;0\)</span> 的PDF为 <span class="math display">\[
+f_{\mathrm{IG}}(y ; a, b)=\left(\frac{b}{2 \pi y^3}\right)^{1 / 2} \exp \left[-\frac{b(y-a)^2}{2 a^2 y}\right], y&gt;0
+\]</span> 在Wang和Xu[48]最近的一项研究之前，IG过程很少被用作退化模型。这可能是因为这个过程没有物理解释。因此，可靠性工程师可能不知道如何以及何时使用该过程进行退化建模。为了弥补这一差距，Ye and Chen [49]探索了这一过程的物理意义。他们发现 IG 过程与 Gamma 过程类似，也是复合泊松过程的极限，但震动大小分布与 Gamma 过程不同。此外，他们还发现，与 Gamma 过程相比，IG 过程在合并协变量和随机效应方面非常灵活。灵活性来自于Wiener过程和IG过程之间的逆关系，如下所示。</p>
+<p>回想一下，维纳过程<span class="math inline">\(X(u)=v u+\sigma \mathrm{B}(u)\)</span>到一个固定阈值的第一次传递时间<span class="math inline">\(\Lambda\)</span>是一个IG随机变量<span class="math inline">\(Y \sim \operatorname{IG}\left(\Lambda / v， \Lambda^2 / \sigma^2\right)\)</span>。如果我们有一系列由<span class="math inline">\(t\)</span>索引的阈值<span class="math inline">\(\Lambda\)</span>，我们将有一系列对应的失败次数<span class="math inline">\(Y(t)\)</span>。很容易表明<span class="math inline">\(Y(t)\)</span>遵循一个IG过程<span class="math inline">\(Y(t) \sim \operatorname{IG}\left(\mu \Lambda(t)， \Lambda \Lambda^2(t)\right)\)</span>，其中<span class="math inline">\(\mu=1 / \nu\)</span>和<span class="math inline">\(\ Lambda =1 / \sigma^2\)</span>。有趣的是，只要Wiener过程中有一种方法可以合并协变量和随机效应，那么IG过程中也有相应的方法可以通过逆关系来合并协变量和随机效应。例如，在维纳过程中，我们可以假设<span class="math inline">\(\nu\)</span>是正常的，<span class="math inline">\(\sigma\)</span>是固定的，或者我们可以假设<span class="math inline">\(\sigma^{-2} \sim \operatorname{Gamma}(r， \delta)\)</span>和<span class="math inline">\(\left[v \mid \sigma^2\right] \sim \mathrm{N}\left(v， \theta \sigma^2\right)\)</span>。因此，我们可以假设<span class="math inline">\(\mu=1 / v\)</span>是正常的，或者假设在IG进程中<span class="math inline">\(\lambda=\sigma^{-2} \sim \operatorname{Gamma}(r,\delta)\)</span>和<span class="math inline">\([1 / \mu \mid \lambda] \sim \mathrm{N}(v， \theta / \lambda)\)</span>。由此得到的IG随机效应模型的边际分布是可处理的。类似地，在<span class="math inline">\(2.3\)</span>中回顾的Wiener过程中合并协变量的方法可以通过逆关系扩展到IG过程。</p>
+<p>在Wang和Xu[48]的工作中，针对IG过程提出了一种基于EM算法的半参数估计方法，其中函数<span class="math inline">\(\Lambda(t)\)</span>非参数估计。EM算法需要IG过程的条件增量的期望，这是很难得到的。在Ye[50]中导出了期望的闭合表达式。这些结果为IG过程的EM算法的实现提供了便利。Peng等人[51]为IG过程开发了贝叶斯方法。然而，IG过程在退化文献中仍然是新的。退化模拟过程的性质需要进一步探索。</p>
+<section id="经典的-ig-过程" class="level3">
+<h3 class="anchored" data-anchor-id="经典的-ig-过程">3.1 经典的 IG 过程</h3>
+<blockquote class="blockquote">
+<p>来自：Guan, Q., et al.&nbsp;(2019). “Reference Bayesian analysis of inverse Gaussian degradation process.” Applied Mathematical Modelling 74: 496-511.（IG + 客观贝叶斯）</p>
+</blockquote>
+<p>设<span class="math inline">\(Y(t)\)</span>为产品在<span class="math inline">\(t\)</span>时刻的退化特性。假设退化路径<span class="math inline">\(Y(t)\)</span>可以用均值函数<span class="math inline">\(\Lambda(t)\)</span>和尺度参数<span class="math inline">\(\lambda\)</span>的IG过程来建模。此时，<span class="math inline">\(Y(t)\)</span>具有以下属性:</p>
+<ul>
+<li><span class="math inline">\(Y(0)=0\)</span>，概率为1;</li>
+<li>对于 <span class="math inline">\(t&gt;s&gt;u, Y(t)-Y(s) \geq 0, Y(s)-Y(u) \geq 0\)</span>, <span class="math inline">\(Y(t)-Y(s)\)</span> 与 <span class="math inline">\(Y(s)-Y(u)\)</span> 相互独立;</li>
+<li>对于 <span class="math inline">\(t&gt;s \geq 0\)</span>, 每个增量 <span class="math inline">\(Y(t)-Y(s)\)</span> 都服从 IG 分布 <span class="math inline">\(I G\left(\Lambda(t)-\Lambda(s), \lambda(\Lambda(t)-\Lambda(s))^2\right)\)</span>, 其中 <span class="math inline">\(\Lambda(t)\)</span> 单调递增的函数, 且 <span class="math inline">\(\Lambda(0)=0\)</span>。</li>
+</ul>
+<p>IG 分布的概率密度函数(pdf) <span class="math inline">\(I G(a, b)\)</span>为 <span class="math display">\[
+f_{I G}(x, a, b)=\left[\frac{b}{2 \pi x^3}\right]^{1 / 2} \exp \left\{-\frac{b(x-a)^2}{2 a^2 x}\right\}
+\]</span> 当<span class="math inline">\(\Lambda(t)\)</span>是一个线性函数时，<span class="math inline">\(\Lambda(t \Delta t)-\Lambda(t)=\Lambda(s \Delta t)-\Lambda(s)\)</span>适用于任何<span class="math inline">\(s \geq 0、t \geq 0\)</span>和<span class="math inline">\(\Delta t \geq 0\)</span>。也就是说，这个IG过程是一个平稳过程。当<span class="math inline">\(\Lambda(t)\)</span>为非线性函数时，<span class="math inline">\(\Lambda(t + \Delta t)-\Lambda(t)\)</span>依赖于<span class="math inline">\(t\)</span>和<span class="math inline">\(\Delta t\)</span>。相应的IG过程是非平稳过程。<strong>在本研究中，我们假设</strong><span class="math inline">\(\Lambda(t)=\eta t\)</span>。根据IG过程的性质，很容易计算<span class="math inline">\(Y(t + \Delta t)-Y(t)\)</span>的期望和方差，即: <span class="math display">\[
+E[Y(t+\Delta t)-Y(t)]=\Lambda(t+\Delta t)-\Lambda(t)=\eta \Delta t,
+\]</span> <span class="math display">\[
+\operatorname{Var}[Y(t+\Delta t)-Y(t)]=\frac{\Lambda(t+\Delta t)-\Lambda(t)}{\lambda}=\frac{\eta \Delta t}{\lambda} .
+\]</span> 令 <span class="math inline">\(T\)</span> 为<span class="math inline">\(Y(t)\)</span>越过临界值<span class="math inline">\(\omega\)</span>的首达时。此时，我们有 <span class="math display">\[
+T=\inf \{t \mid Y(t) \geq \omega, t&gt;0\} .
+\]</span> 对于给定的<span class="math inline">\(\omega\)</span>，生命周期<span class="math inline">\(T\)</span>具有以下累积分布函数(cdf) <span class="math display">\[
+\begin{aligned}
+F(t) &amp;=P(T \leq t)=P(Y(t)&gt;\omega)=1-F_{I G}\left(\omega ; \Lambda(t), \lambda \Lambda(t)^2\right) \\
+&amp;=\Phi\left[\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)-\omega)\right]-e^{2 \lambda \Lambda(t)} \Phi\left[-\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)+\omega)\right]
+\end{aligned}
+\]</span> 其中 <span class="math inline">\(F_{I G}(. ; a, b)\)</span> 是 IG 分布, <span class="math inline">\(\Phi(\cdot)\)</span> 为标准正态分布的cdf。</p>
+<p>对上述公式中的 <span class="math inline">\(t\)</span> 求导, 此时，<span class="math inline">\(T\)</span>的 pdf 为 <span class="math display">\[
+\begin{aligned}
+f(t)=&amp; \Lambda^{\prime}(t)\left\{\frac{\lambda}{\omega} \phi\left[\frac{\sqrt{\lambda}(\Lambda(t)-\omega)}{\sqrt{\omega}}\right]-2 \lambda \exp [2 \lambda \Lambda(t)] \Phi\left[-\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)+\omega)\right]\right\} \\
+&amp;+\Lambda^{\prime}(t)\left\{\frac{\lambda}{\omega} \exp [2 \lambda \Lambda(t)] \phi\left[-\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)+\omega)\right]\right\}
+\end{aligned}
+\]</span> 其中<span class="math inline">\(\phi(\cdot)\)</span>是标准正态分布的PDF。</p>
+<p>如果<span class="math inline">\(t \rightarrow \infty\)</span>，则<span class="math inline">\(\lambda \Lambda (t) \rightarrow \infty\)</span>和<span class="math inline">\(Y(t)\)</span>服从渐近正态分布，其均值为<span class="math inline">\(\Lambda (t)\)</span>，方差为<span class="math inline">\(\frac{\Lambda (t)}{\lambda}\)</span>。因此，<span class="math inline">\(T\)</span>的cdf是渐近为 <span class="math display">\[
+P(T&lt;t) \approx 1-\Phi\left[\frac{\omega-\Lambda(t)}{\sqrt{\Lambda(t) / \lambda}}\right]=\Phi\left[\sqrt{\lambda \Lambda(t)}-\frac{\omega \sqrt{\lambda}}{\sqrt{\Lambda(t)}}\right]
+\]</span> 当<span class="math inline">\(\Lambda(t)=\eta t\)</span> [17] 时，Eq.(5)是带有形状参数<span class="math inline">\((\omega \Lambda)^{-\frac{1}{2}}\)</span>和比例参数<span class="math inline">\(\frac{\omega}{\eta}\)</span>的BS分布。也就是说，生命期<span class="math inline">\(T\)</span>的cdf是一个渐近BS分布。因此，寿命<span class="math inline">\(T\)</span>的平均故障时间(mean time to failure, MTTF)为BS分布的均值，即: <span class="math display">\[
+M T T F=E(T) \approx \frac{\omega}{\eta}+\frac{1}{2 \eta \lambda} .
+\]</span> BS分布作为疲劳失效时间数据的有效寿命分布已被广泛研究[18-22]。但是，BS分布不适合作为退化模型，不能替代IG过程模型。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(viridis)</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(statmod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="数据模拟产生" class="level4">
+<h4 class="anchored" data-anchor-id="数据模拟产生">3.1.1 数据模拟产生</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># 数据模拟产生</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>sim_dat <span class="ot">=</span> <span class="cf">function</span>(<span class="at">group =</span> <span class="dv">6</span>, <span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">200</span>, <span class="at">para =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="fl">0.1</span>)){</span>
+<span id="cb2-3"><a href="#cb2-3"></a>  <span class="co"># para 指 eta,lambda  根据上面的公式（Lambda = eta * t）</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>  <span class="co"># epoch 指测量次数， group 指组数</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a>  delta_t <span class="ot">=</span> <span class="fu">diff</span>(t)</span>
+<span id="cb2-6"><a href="#cb2-6"></a>  epoch <span class="ot">=</span> <span class="fu">length</span>(delta_t)</span>
+<span id="cb2-7"><a href="#cb2-7"></a>  dat <span class="ot">=</span> <span class="fu">matrix</span>(<span class="cn">NA</span>,epoch,group<span class="sc">+</span><span class="dv">1</span>)</span>
+<span id="cb2-8"><a href="#cb2-8"></a>  dat[,<span class="dv">1</span>] <span class="ot">=</span> <span class="fu">seq</span>(<span class="dv">1</span>,epoch)</span>
+<span id="cb2-9"><a href="#cb2-9"></a>  dat_unit <span class="ot">=</span> <span class="fu">numeric</span>()</span>
+<span id="cb2-10"><a href="#cb2-10"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>group){</span>
+<span id="cb2-11"><a href="#cb2-11"></a>    <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>epoch) dat_unit[j] <span class="ot">=</span> <span class="fu">rinvgauss</span>(<span class="dv">1</span>, <span class="at">mean=</span>para[<span class="dv">1</span>]<span class="sc">*</span>delta_t[j], <span class="at">shape=</span>(para[<span class="dv">1</span>]<span class="sc">*</span>delta_t[j])<span class="sc">^</span><span class="dv">2</span><span class="sc">*</span>para[<span class="dv">2</span>]) <span class="co"># shape = 1/ dispersion, 我们这是shape</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a>    dat[,i<span class="sc">+</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">cumsum</span>(dat_unit)</span>
+<span id="cb2-13"><a href="#cb2-13"></a>  }</span>
+<span id="cb2-14"><a href="#cb2-14"></a>  dat <span class="ot">=</span> <span class="fu">data.frame</span>(dat)</span>
+<span id="cb2-15"><a href="#cb2-15"></a>  dat1 <span class="ot">=</span> <span class="fu">rbind</span>(<span class="fu">rep</span>(<span class="dv">0</span>,group<span class="sc">+</span><span class="dv">1</span>),dat) <span class="co"># 加入初始值绘制点</span></span>
+<span id="cb2-16"><a href="#cb2-16"></a>  <span class="fu">colnames</span>(dat1) <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Time"</span>,<span class="fu">paste</span>(<span class="dv">1</span><span class="sc">:</span>group,<span class="at">sep=</span><span class="st">''</span>))</span>
+<span id="cb2-17"><a href="#cb2-17"></a>  <span class="fu">return</span>(dat1)</span>
+<span id="cb2-18"><a href="#cb2-18"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>绘制退化路径图</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># 绘制退化路径图</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>plot_path <span class="ot">=</span> <span class="cf">function</span>(<span class="at">data =</span> dat1){</span>
+<span id="cb3-3"><a href="#cb3-3"></a>    <span class="co"># 画图</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a>  p <span class="ot">=</span> data <span class="sc">%&gt;%</span> <span class="fu">pivot_longer</span>(<span class="fu">paste</span>(<span class="dv">1</span><span class="sc">:</span>group), </span>
+<span id="cb3-5"><a href="#cb3-5"></a>                       <span class="at">names_to =</span> <span class="st">"Group"</span>, </span>
+<span id="cb3-6"><a href="#cb3-6"></a>                       <span class="at">values_to =</span> <span class="st">"y"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-7"><a href="#cb3-7"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(Time,y,<span class="at">color =</span> Group)) <span class="sc">+</span> </span>
+<span id="cb3-8"><a href="#cb3-8"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
+<span id="cb3-9"><a href="#cb3-9"></a>    <span class="fu">scale_color_viridis</span>(<span class="at">discrete =</span> T) <span class="sc">+</span> </span>
+<span id="cb3-10"><a href="#cb3-10"></a>    <span class="fu">ylab</span>(<span class="st">"Degradation"</span>) <span class="co">#+</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a>    <span class="co">#theme_bw() +</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a>    <span class="co">#theme(panel.grid = element_blank())</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a>  <span class="fu">print</span>(p)</span>
+<span id="cb3-14"><a href="#cb3-14"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>group <span class="ot">=</span> <span class="dv">6</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>t <span class="ot">=</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">50</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a>para <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">9</span>) <span class="co">#eta,lambda</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a>dat <span class="ot">=</span> <span class="fu">sim_dat</span>(<span class="at">group =</span> group, <span class="at">t =</span> t, <span class="at">para =</span> para)</span>
+<span id="cb4-5"><a href="#cb4-5"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(dat))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Time</th>
+<th style="text-align: right;">1</th>
+<th style="text-align: right;">2</th>
+<th style="text-align: right;">3</th>
+<th style="text-align: right;">4</th>
+<th style="text-align: right;">5</th>
+<th style="text-align: right;">6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.000000</td>
+<td style="text-align: right;">0.000000</td>
+<td style="text-align: right;">0.000000</td>
+<td style="text-align: right;">0.000000</td>
+<td style="text-align: right;">0.000000</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2.886311</td>
+<td style="text-align: right;">3.210633</td>
+<td style="text-align: right;">2.826436</td>
+<td style="text-align: right;">3.183005</td>
+<td style="text-align: right;">3.210142</td>
+<td style="text-align: right;">4.239415</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5.547700</td>
+<td style="text-align: right;">7.021203</td>
+<td style="text-align: right;">5.774596</td>
+<td style="text-align: right;">6.043884</td>
+<td style="text-align: right;">5.837151</td>
+<td style="text-align: right;">7.018783</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">8.078670</td>
+<td style="text-align: right;">9.685567</td>
+<td style="text-align: right;">8.518245</td>
+<td style="text-align: right;">9.440627</td>
+<td style="text-align: right;">9.026761</td>
+<td style="text-align: right;">11.077175</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">10.911407</td>
+<td style="text-align: right;">12.312344</td>
+<td style="text-align: right;">11.427766</td>
+<td style="text-align: right;">11.995031</td>
+<td style="text-align: right;">12.444254</td>
+<td style="text-align: right;">13.822832</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">13.432163</td>
+<td style="text-align: right;">16.868668</td>
+<td style="text-align: right;">14.394812</td>
+<td style="text-align: right;">14.926660</td>
+<td style="text-align: right;">16.494020</td>
+<td style="text-align: right;">16.711461</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">plot_path</span>(dat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="IG-notebook_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="统计推断" class="level4">
+<h4 class="anchored" data-anchor-id="统计推断">3.1.2 统计推断</h4>
+<p>令<span class="math inline">\(Y\left(t_{ij}\right)\)</span>为第<span class="math inline">\(i\)</span>个测试单元在<span class="math inline">\(t_{ij}\)</span>时刻测量的退化特性，其中<span class="math inline">\(i=1， \ldots, n\)</span>和<span class="math inline">\(j=\)</span> <span class="math inline">\(1， \ldots, m_i\)</span>。</p>
+<section id="极大似然估计" class="level5">
+<h5 class="anchored" data-anchor-id="极大似然估计">3.1.2.1 极大似然估计</h5>
+<p>根据<span class="math inline">\(\Delta y_{ij}=Y\left(t_{ij}\right)-Y\left(t_{ij -1}\right)， i=1， \ldots n, j=1， \ldots, m_i\)</span>， <span class="math inline">\((\lambda, \eta)\)</span>的似然函数为 <span class="math display">\[
+L(\lambda, \eta)=\prod_{i=1}^n \prod_{j=1}^{m_i} f_{I G}\left(\Delta y_{i j}, \eta \Delta t_{i j}, \lambda \eta^2 \Delta^2 t_{i j}\right) .
+\]</span> 对数似然函数为： <span class="math display">\[
+\log L(\lambda, \eta)=\sum_{i=1}^n \sum_{j=1}^{m_i}\left(\frac{1}{2} \log (\lambda)+\log (\eta)+\log \Delta t_{i j}-\frac{1}{2} \log \left(2 \pi \Delta y_{i j}^3\right)-\frac{\lambda\left(\Delta y_{i j}-\eta \Delta t_{i j}\right)^2}{2 \Delta t_{i j}}\right)
+\]</span></p>
+<p><span class="math inline">\((\eta, \lambda)\)</span> 对应的 Fisher 信息矩阵为 <span class="math display">\[
+I(\eta, \lambda)=\left[\begin{array}{cc}
+\frac{\lambda \eta \tau+2 N}{\eta^2} &amp; \frac{N}{\lambda \eta} \\
+\frac{N}{\lambda \eta} &amp; \frac{N}{2 \lambda^2}
+\end{array}\right],
+\]</span> 其中， <span class="math inline">\(\tau=\sum_{i=1}^n \sum_{j=1}^{m_i} \Delta t_{i j}\)</span> 和 <span class="math inline">\(N=\sum_{i=1}^n m_i\)</span>。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>cumsub <span class="ot">=</span> <span class="cf">function</span>(x){</span>
+<span id="cb6-2"><a href="#cb6-2"></a>  <span class="co">#完成逐个相减功能，类似cumsum</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>  re <span class="ot">=</span> <span class="fu">numeric</span>()</span>
+<span id="cb6-4"><a href="#cb6-4"></a>  re[<span class="dv">1</span>] <span class="ot">=</span> x[<span class="dv">1</span>]</span>
+<span id="cb6-5"><a href="#cb6-5"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span><span class="fu">length</span>(x)){</span>
+<span id="cb6-6"><a href="#cb6-6"></a>    re[i] <span class="ot">=</span> x[i] <span class="sc">-</span> x[i<span class="dv">-1</span>]</span>
+<span id="cb6-7"><a href="#cb6-7"></a>  }</span>
+<span id="cb6-8"><a href="#cb6-8"></a>  <span class="fu">return</span>(re)</span>
+<span id="cb6-9"><a href="#cb6-9"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>IG_mle <span class="ot">=</span> <span class="cf">function</span>(<span class="at">par =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>),<span class="at">data =</span> dat){</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="co"># 输入：eta,lambda，数据</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a>  <span class="co"># 输出：负对数似然函数</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a>  mu <span class="ot">=</span> par[<span class="dv">1</span>]; sigma <span class="ot">=</span> par[<span class="dv">2</span>]</span>
+<span id="cb7-5"><a href="#cb7-5"></a>  group <span class="ot">=</span> <span class="fu">ncol</span>(data) <span class="sc">-</span> <span class="dv">1</span>;time <span class="ot">=</span> data[,<span class="dv">1</span>];y <span class="ot">=</span> data[<span class="sc">-</span><span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb7-6"><a href="#cb7-6"></a>  <span class="co"># 差分得到delta_time和delta_y</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a>  delta_time <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">rep</span>(<span class="fu">diff</span>(time),group),<span class="fu">length</span>(<span class="fu">diff</span>(time)),group)</span>
+<span id="cb7-8"><a href="#cb7-8"></a>  delta_y <span class="ot">=</span> <span class="fu">matrix</span>(<span class="cn">NA</span>,<span class="fu">nrow</span>(delta_time),group)</span>
+<span id="cb7-9"><a href="#cb7-9"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>group) delta_y[,i] <span class="ot">=</span> <span class="fu">cumsub</span>(y[,i])</span>
+<span id="cb7-10"><a href="#cb7-10"></a></span>
+<span id="cb7-11"><a href="#cb7-11"></a>  logl <span class="ot">=</span> <span class="fu">nrow</span>(delta_time)<span class="sc">*</span>group <span class="sc">*</span> (<span class="dv">1</span><span class="sc">/</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">log</span>(par[<span class="dv">2</span>]) <span class="sc">+</span> <span class="fu">log</span>(par[<span class="dv">1</span>])) <span class="sc">+</span> <span class="fu">sum</span>(<span class="fu">log</span>(delta_time) <span class="sc">-</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">log</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>delta_y<span class="sc">^</span><span class="dv">3</span>) <span class="sc">-</span> (par[<span class="dv">2</span>]<span class="sc">*</span>(delta_y <span class="sc">-</span> par[<span class="dv">1</span>]<span class="sc">*</span>delta_time)<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>delta_time),<span class="at">na.rm =</span>T)</span>
+<span id="cb7-12"><a href="#cb7-12"></a></span>
+<span id="cb7-13"><a href="#cb7-13"></a>  <span class="fu">return</span>(<span class="sc">-</span>logl)</span>
+<span id="cb7-14"><a href="#cb7-14"></a>}</span>
+<span id="cb7-15"><a href="#cb7-15"></a></span>
+<span id="cb7-16"><a href="#cb7-16"></a>mle_re <span class="ot">=</span> <span class="fu">optim</span>(<span class="at">par=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="fl">0.5</span>), <span class="at">fn =</span> IG_mle, </span>
+<span id="cb7-17"><a href="#cb7-17"></a>      <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"BFGS"</span>, <span class="at">hessian =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-18"><a href="#cb7-18"></a><span class="co"># mle_re</span></span>
+<span id="cb7-19"><a href="#cb7-19"></a>mle_par <span class="ot">=</span> mle_re<span class="sc">$</span>par</span>
+<span id="cb7-20"><a href="#cb7-20"></a><span class="co"># 区间估计</span></span>
+<span id="cb7-21"><a href="#cb7-21"></a>mle_up <span class="ot">=</span> mle_re<span class="sc">$</span>par <span class="sc">+</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">solve</span>(mle_re<span class="sc">$</span>hessian)))<span class="sc">*</span><span class="fu">qnorm</span>(<span class="fl">0.975</span>)</span>
+<span id="cb7-22"><a href="#cb7-22"></a>mle_low <span class="ot">=</span> mle_re<span class="sc">$</span>par <span class="sc">-</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">solve</span>(mle_re<span class="sc">$</span>hessian)))<span class="sc">*</span><span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="co">#hessian 和协方差矩阵存在逆的关系：https://blog.csdn.net/anruoxi3236/article/details/102005217</span></span>
+<span id="cb7-23"><a href="#cb7-23"></a>mle_summary <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cbind</span>(mle_low,mle_re<span class="sc">$</span>par,mle_up,para),<span class="dv">3</span>)</span>
+<span id="cb7-24"><a href="#cb7-24"></a><span class="fu">colnames</span>(mle_summary) <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"low"</span>,<span class="st">"mean"</span>,<span class="st">"up"</span>,<span class="st">"true"</span>)</span>
+<span id="cb7-25"><a href="#cb7-25"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(mle_summary) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: right;">low</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">up</th>
+<th style="text-align: right;">true</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">3.044</td>
+<td style="text-align: right;">3.108</td>
+<td style="text-align: right;">3.172</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2.729</td>
+<td style="text-align: right;">3.276</td>
+<td style="text-align: right;">3.823</td>
+<td style="text-align: right;">9</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>lambda的估计结果存在问题</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>可靠度公式有问题，代码有问题</p>
+</blockquote>
+<p>为了得到产品可靠度的估计, 只要将 <span class="math inline">\(\hat{\eta} 、 \hat{\lambda}^2\)</span> 代人时间 <span class="math inline">\(t\)</span> 的可靠度的表达式（1-F(t)）, 即 可得到可靠度的点估计为 <span class="math display">\[
+\begin{aligned}R(t) &amp;= 1-\Phi\left[\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)-\omega)\right]+e^{2 \lambda \Lambda(t)} \Phi\left[-\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)+\omega)\right]
+\end{aligned}
+\]</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="do">## 可靠度计算</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>IG_R <span class="ot">=</span> <span class="cf">function</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">threshold =</span> <span class="dv">6</span>, <span class="at">par =</span> mle_par){</span>
+<span id="cb8-3"><a href="#cb8-3"></a>  R <span class="ot">=</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(<span class="fu">sqrt</span>(par[<span class="dv">2</span>]<span class="sc">/</span>threshold)<span class="sc">*</span>(par[<span class="dv">1</span>]<span class="sc">*</span>t <span class="sc">-</span> threshold)) <span class="sc">+</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a>    <span class="fu">exp</span>(<span class="dv">2</span><span class="sc">*</span>par[<span class="dv">2</span>]<span class="sc">*</span>par[<span class="dv">1</span>]<span class="sc">*</span>t)<span class="sc">*</span><span class="fu">pnorm</span>(<span class="sc">-</span><span class="fu">sqrt</span>(par[<span class="dv">2</span>]<span class="sc">/</span>threshold <span class="sc">*</span>(par[<span class="dv">1</span>]<span class="sc">*</span>t <span class="sc">+</span> threshold)))</span>
+<span id="cb8-5"><a href="#cb8-5"></a>  <span class="fu">return</span>(R)</span>
+<span id="cb8-6"><a href="#cb8-6"></a>}</span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="co"># 给个简单例子</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="fu">IG_R</span>(<span class="at">t =</span> <span class="dv">100</span>, <span class="at">threshold =</span> <span class="dv">150</span>,<span class="at">par =</span> mle_par)</span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="do">## [1] Inf</span></span>
+<span id="cb8-10"><a href="#cb8-10"></a><span class="co"># 绘制带区间估计的可靠度函数（需要优化为 ggplot 绘制）</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a><span class="fu">plot</span>(<span class="fu">IG_R</span>(<span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">300</span>, <span class="at">threshold =</span> <span class="dv">150</span>,<span class="at">par =</span> mle_par),<span class="at">type =</span> <span class="st">"l"</span>,<span class="at">ylab =</span> <span class="st">'Reliability'</span>,<span class="at">xlab =</span> <span class="st">"time"</span>)</span>
+<span id="cb8-12"><a href="#cb8-12"></a><span class="fu">lines</span>(<span class="fu">IG_R</span>(<span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">300</span>, <span class="at">threshold =</span> <span class="dv">1500</span>,<span class="at">par =</span> mle_up))</span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="fu">lines</span>(<span class="fu">IG_R</span>(<span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">300</span>, <span class="at">threshold =</span> <span class="dv">1500</span>,<span class="at">par =</span> mle_low))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="IG-notebook_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="客观贝叶斯分析" class="level5">
+<h5 class="anchored" data-anchor-id="客观贝叶斯分析">3.1.2.2 客观贝叶斯分析</h5>
+<blockquote class="blockquote">
+<p>来自：Guan, Q., et al.&nbsp;(2019). “Reference Bayesian analysis of inverse Gaussian degradation process.” Applied Mathematical Modelling 74: 496-511.（IG + 客观贝叶斯）</p>
+</blockquote>
+</section>
+<section id="广义推断方法" class="level5">
+<h5 class="anchored" data-anchor-id="广义推断方法">3.1.2.3 广义推断方法</h5>
+<p>暂时还未找到，最经典的维纳过程的广义推断方法论文。其他类似的论文整理如下：</p>
+</section>
+</section>
+</section>
+<section id="案例分析" class="level3">
+<h3 class="anchored" data-anchor-id="案例分析">3.3 案例分析</h3>
+<section id="激光器件-laser-数据集" class="level4">
+<h4 class="anchored" data-anchor-id="激光器件-laser-数据集">激光器件 Laser 数据集</h4>
+<blockquote class="blockquote">
+<p>数据集来自 Meeker, W. Q. (1998). Statistical Methods for Reliability Data。</p>
+</blockquote>
+<p>激光器件的质量特征是其<strong>工作电流</strong>。当工作电流达到预定义的阈值水平ω = 10时，该设备被认为是故障。其电流的测量频率为每250小时一次，实验在4000小时时终止。图1(a)显示了15个被测试单元的退化路径及其拟合的平均趋势。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>Laser_dat <span class="ot">=</span> <span class="fu">read.csv</span>(<span class="st">"dataset/GaAsLaser.csv"</span>)</span>
+<span id="cb9-2"><a href="#cb9-2"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(Laser_dat))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Value</th>
+<th style="text-align: right;">Unit</th>
+<th style="text-align: right;">Hours</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.4741</td>
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">250</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.9255</td>
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2.1147</td>
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">750</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2.7168</td>
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">1000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3.5110</td>
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">1250</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>Laser_dat<span class="sc">$</span>Unit <span class="ot">=</span> <span class="fu">as.factor</span>(Laser_dat<span class="sc">$</span>Unit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>Laser_dat <span class="sc">%&gt;%</span> <span class="fu">ggplot</span>(<span class="fu">aes</span>(Hours,Value,<span class="at">fill =</span> Unit)) <span class="sc">+</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">0.1</span>) <span class="sc">+</span> </span>
+<span id="cb11-3"><a href="#cb11-3"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span> </span>
+<span id="cb11-4"><a href="#cb11-4"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a>  <span class="co"># scale_color_viridis(discrete = T) + </span></span>
+<span id="cb11-7"><a href="#cb11-7"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">'none'</span>) <span class="sc">+</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Hours"</span>, <span class="at">y =</span> <span class="st">"Degradation characteristic"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="IG-notebook_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="防辐射-anti-radiation-数据集" class="level4">
+<h4 class="anchored" data-anchor-id="防辐射-anti-radiation-数据集">防辐射 Anti-radiation 数据集</h4>
+<blockquote class="blockquote">
+<p>数据来源：Song, B., et al.&nbsp;(2017). “Performance evaluation of anti-radiation based on the gamma degradation process.” Science China Technological Sciences 60(4): 501-509.</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>分析结果参考：Guan, Q., et al.&nbsp;(2019). “Reference Bayesian analysis of inverse Gaussian degradation process.” Applied Mathematical Modelling 74: 496-511.（IG + 客观贝叶斯）</p>
+</blockquote>
+<p>数据还未下载（文中有，具体怎么做的试验，还未学习），pdf已经存在Endnote中了。</p>
+<!-- -->
+
+</section>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb12" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1"></a><span class="co">---</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="an">title:</span><span class="co"> "逆高斯退化过程"</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="an">author:</span><span class="co"> "庄亮亮"</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="an">format:</span><span class="co"> </span></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="co">  html:</span></span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="co">    toc: TRUE</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="co">    toc-depth: 5</span></span>
+<span id="cb12-8"><a href="#cb12-8"></a><span class="co">    toc-title: "目录"</span></span>
+<span id="cb12-9"><a href="#cb12-9"></a><span class="co">    theme: cerulean</span></span>
+<span id="cb12-10"><a href="#cb12-10"></a><span class="co">    code-tools: true</span></span>
+<span id="cb12-11"><a href="#cb12-11"></a><span class="co">    highlight-style: cerulean.theme</span></span>
+<span id="cb12-12"><a href="#cb12-12"></a><span class="co">    code-line-numbers: true</span></span>
+<span id="cb12-13"><a href="#cb12-13"></a><span class="co">    code-block-bg: true</span></span>
+<span id="cb12-14"><a href="#cb12-14"></a><span class="an">editor:</span><span class="co"> visual</span></span>
+<span id="cb12-15"><a href="#cb12-15"></a><span class="an">editor_options:</span><span class="co"> </span></span>
+<span id="cb12-16"><a href="#cb12-16"></a><span class="co">  chunk_output_type: console</span></span>
+<span id="cb12-17"><a href="#cb12-17"></a><span class="co">---</span></span>
+<span id="cb12-18"><a href="#cb12-18"></a></span>
+<span id="cb12-19"><a href="#cb12-19"></a><span class="in">```{r setup, include=FALSE}</span></span>
+<span id="cb12-20"><a href="#cb12-20"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">warning =</span> <span class="cn">FALSE</span>, <span class="at">message =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb12-21"><a href="#cb12-21"></a><span class="in">```</span></span>
+<span id="cb12-22"><a href="#cb12-22"></a></span>
+<span id="cb12-23"><a href="#cb12-23"></a><span class="fu">## 1. IG 退化过程模型</span></span>
+<span id="cb12-24"><a href="#cb12-24"></a></span>
+<span id="cb12-25"><a href="#cb12-25"></a><span class="at">&gt; 来源：Ye, Z.-S. and M. Xie (2015). "Stochastic modelling and analysis of degradation for highly reliable products." Applied Stochastic Models in Business and Industry 31(1): 16-32.</span></span>
+<span id="cb12-26"><a href="#cb12-26"></a></span>
+<span id="cb12-27"><a href="#cb12-27"></a>虽然 Wiener 过程和 Gamma 过程在退化建模中得到了广泛的应用，但这两种模型在实际应用中无法拟合大量退化数据。当这两个过程失败时，另一个选择是逆高斯(inverse Gaussian, IG)过程。</span>
+<span id="cb12-28"><a href="#cb12-28"></a></span>
+<span id="cb12-29"><a href="#cb12-29"></a>如果过程$<span class="sc">\{</span>Y(t);t \geqslant 0<span class="sc">\}</span>$具有独立的 IG 分布增量，则称为基本的 IG 过程，即$Y(t) \sim \operatorname{IG}\left(\mu \Lambda(t)， \lambda \Lambda^2(t)\right)$，其中$\Lambda(t)$是非负且单调递增的。IG $(a, b), a, b&gt;0$ 的PDF为 $$</span>
+<span id="cb12-30"><a href="#cb12-30"></a>f_{\mathrm{IG}}(y ; a, b)=\left(\frac{b}{2 \pi y^3}\right)^{1 / 2} \exp \left<span class="co">[</span><span class="ot">-\frac{b(y-a)^2}{2 a^2 y}\right</span><span class="co">]</span>, y&gt;0</span>
+<span id="cb12-31"><a href="#cb12-31"></a>$$ 在Wang和Xu<span class="sc">\[</span>48<span class="sc">\]</span>最近的一项研究之前，IG过程很少被用作退化模型。这可能是因为这个过程没有物理解释。因此，可靠性工程师可能不知道如何以及何时使用该过程进行退化建模。为了弥补这一差距，Ye and Chen <span class="sc">\[</span>49<span class="sc">\]</span>探索了这一过程的物理意义。他们发现 IG 过程与 Gamma 过程类似，也是复合泊松过程的极限，但震动大小分布与 Gamma 过程不同。此外，他们还发现，与 Gamma 过程相比，IG 过程在合并协变量和随机效应方面非常灵活。灵活性来自于Wiener过程和IG过程之间的逆关系，如下所示。</span>
+<span id="cb12-32"><a href="#cb12-32"></a></span>
+<span id="cb12-33"><a href="#cb12-33"></a>回想一下，维纳过程$X(u)=v u+\sigma \mathrm{B}(u)$到一个固定阈值的第一次传递时间$\Lambda$是一个IG随机变量$Y \sim \operatorname{IG}\left(\Lambda / v， \Lambda^2 / \sigma^2\right)$。如果我们有一系列由$t$索引的阈值$\Lambda$，我们将有一系列对应的失败次数$Y(t)$。很容易表明$Y(t)$遵循一个IG过程$Y(t) \sim \operatorname{IG}\left(\mu \Lambda(t)， \Lambda \Lambda^2(t)\right)$，其中$\mu=1 / \nu$和$\ Lambda =1 / \sigma^2$。有趣的是，只要Wiener过程中有一种方法可以合并协变量和随机效应，那么IG过程中也有相应的方法可以通过逆关系来合并协变量和随机效应。例如，在维纳过程中，我们可以假设$\nu$是正常的，$\sigma$是固定的，或者我们可以假设$\sigma^{-2} \sim \operatorname{Gamma}(r， \delta)$和$\left<span class="co">[</span><span class="ot">v \mid \sigma^2\right</span><span class="co">]</span> \sim \mathrm{N}\left(v， \theta \sigma^2\right)$。因此，我们可以假设$\mu=1 / v$是正常的，或者假设在IG进程中$\lambda=\sigma^{-2} \sim \operatorname{Gamma}(r,\delta)$和$<span class="co">[</span><span class="ot">1 / \mu \mid \lambda</span><span class="co">]</span> \sim \mathrm{N}(v， \theta / \lambda)$。由此得到的IG随机效应模型的边际分布是可处理的。类似地，在$2.3$中回顾的Wiener过程中合并协变量的方法可以通过逆关系扩展到IG过程。</span>
+<span id="cb12-34"><a href="#cb12-34"></a></span>
+<span id="cb12-35"><a href="#cb12-35"></a>在Wang和Xu<span class="sc">\[</span>48<span class="sc">\]</span>的工作中，针对IG过程提出了一种基于EM算法的半参数估计方法，其中函数$\Lambda(t)$非参数估计。EM算法需要IG过程的条件增量的期望，这是很难得到的。在Ye<span class="sc">\[</span>50<span class="sc">\]</span>中导出了期望的闭合表达式。这些结果为IG过程的EM算法的实现提供了便利。Peng等人<span class="sc">\[</span>51<span class="sc">\]</span>为IG过程开发了贝叶斯方法。然而，IG过程在退化文献中仍然是新的。退化模拟过程的性质需要进一步探索。</span>
+<span id="cb12-36"><a href="#cb12-36"></a></span>
+<span id="cb12-37"><a href="#cb12-37"></a><span class="fu">### 3.1 经典的 IG 过程</span></span>
+<span id="cb12-38"><a href="#cb12-38"></a></span>
+<span id="cb12-39"><a href="#cb12-39"></a><span class="at">&gt; 来自：Guan, Q., et al. (2019). "Reference Bayesian analysis of inverse Gaussian degradation process." Applied Mathematical Modelling 74: 496-511.（IG + 客观贝叶斯）</span></span>
+<span id="cb12-40"><a href="#cb12-40"></a></span>
+<span id="cb12-41"><a href="#cb12-41"></a>设$Y(t)$为产品在$t$时刻的退化特性。假设退化路径$Y(t)$可以用均值函数$\Lambda(t)$和尺度参数$\lambda$的IG过程来建模。此时，$Y(t)$具有以下属性:</span>
+<span id="cb12-42"><a href="#cb12-42"></a></span>
+<span id="cb12-43"><a href="#cb12-43"></a><span class="ss">-   </span>$Y(0)=0$，概率为1;</span>
+<span id="cb12-44"><a href="#cb12-44"></a><span class="ss">-   </span>对于 $t&gt;s&gt;u, Y(t)-Y(s) \geq 0, Y(s)-Y(u) \geq 0$, $Y(t)-Y(s)$ 与 $Y(s)-Y(u)$ 相互独立;</span>
+<span id="cb12-45"><a href="#cb12-45"></a><span class="ss">-   </span>对于 $t&gt;s \geq 0$, 每个增量 $Y(t)-Y(s)$ 都服从 IG 分布 $I G\left(\Lambda(t)-\Lambda(s), \lambda(\Lambda(t)-\Lambda(s))^2\right)$, 其中 $\Lambda(t)$ 单调递增的函数, 且 $\Lambda(0)=0$。</span>
+<span id="cb12-46"><a href="#cb12-46"></a></span>
+<span id="cb12-47"><a href="#cb12-47"></a>IG 分布的概率密度函数(pdf) $I G(a, b)$为 $$</span>
+<span id="cb12-48"><a href="#cb12-48"></a>f_{I G}(x, a, b)=\left<span class="co">[</span><span class="ot">\frac{b}{2 \pi x^3}\right</span><span class="co">]</span>^{1 / 2} \exp \left<span class="sc">\{</span>-\frac{b(x-a)^2}{2 a^2 x}\right<span class="sc">\}</span></span>
+<span id="cb12-49"><a href="#cb12-49"></a>$$ 当$\Lambda(t)$是一个线性函数时，$\Lambda(t \Delta t)-\Lambda(t)=\Lambda(s \Delta t)-\Lambda(s)$适用于任何$s \geq 0、t \geq 0$和$\Delta t \geq 0$。也就是说，这个IG过程是一个平稳过程。当$\Lambda(t)$为非线性函数时，$\Lambda(t + \Delta t)-\Lambda(t)$依赖于$t$和$\Delta t$。相应的IG过程是非平稳过程。**在本研究中，我们假设**$\Lambda(t)=\eta t$。根据IG过程的性质，很容易计算$Y(t + \Delta t)-Y(t)$的期望和方差，即: $$</span>
+<span id="cb12-50"><a href="#cb12-50"></a>E<span class="co">[</span><span class="ot">Y(t+\Delta t)-Y(t)</span><span class="co">]</span>=\Lambda(t+\Delta t)-\Lambda(t)=\eta \Delta t,</span>
+<span id="cb12-51"><a href="#cb12-51"></a>$$ $$</span>
+<span id="cb12-52"><a href="#cb12-52"></a>\operatorname{Var}<span class="co">[</span><span class="ot">Y(t+\Delta t)-Y(t)</span><span class="co">]</span>=\frac{\Lambda(t+\Delta t)-\Lambda(t)}{\lambda}=\frac{\eta \Delta t}{\lambda} .</span>
+<span id="cb12-53"><a href="#cb12-53"></a>$$ 令 $T$ 为$Y(t)$越过临界值$\omega$的首达时。此时，我们有 $$</span>
+<span id="cb12-54"><a href="#cb12-54"></a>T=\inf <span class="sc">\{</span>t \mid Y(t) \geq \omega, t&gt;0<span class="sc">\}</span> .</span>
+<span id="cb12-55"><a href="#cb12-55"></a>$$ 对于给定的$\omega$，生命周期$T$具有以下累积分布函数(cdf) $$</span>
+<span id="cb12-56"><a href="#cb12-56"></a>\begin{aligned}</span>
+<span id="cb12-57"><a href="#cb12-57"></a>F(t) &amp;=P(T \leq t)=P(Y(t)&gt;\omega)=1-F_{I G}\left(\omega ; \Lambda(t), \lambda \Lambda(t)^2\right) <span class="sc">\\</span></span>
+<span id="cb12-58"><a href="#cb12-58"></a>&amp;=\Phi\left<span class="co">[</span><span class="ot">\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)-\omega)\right</span><span class="co">]</span>-e^{2 \lambda \Lambda(t)} \Phi\left<span class="co">[</span><span class="ot">-\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)+\omega)\right</span><span class="co">]</span></span>
+<span id="cb12-59"><a href="#cb12-59"></a>\end{aligned}</span>
+<span id="cb12-60"><a href="#cb12-60"></a>$$ 其中 $F_{I G}(. ; a, b)$ 是 IG 分布, $\Phi(\cdot)$ 为标准正态分布的cdf。</span>
+<span id="cb12-61"><a href="#cb12-61"></a></span>
+<span id="cb12-62"><a href="#cb12-62"></a>对上述公式中的 $t$ 求导, 此时，$T$的 pdf 为 $$</span>
+<span id="cb12-63"><a href="#cb12-63"></a>\begin{aligned}</span>
+<span id="cb12-64"><a href="#cb12-64"></a>f(t)=&amp; \Lambda^{\prime}(t)\left<span class="sc">\{</span>\frac{\lambda}{\omega} \phi\left<span class="co">[</span><span class="ot">\frac{\sqrt{\lambda}(\Lambda(t)-\omega)}{\sqrt{\omega}}\right</span><span class="co">]</span>-2 \lambda \exp <span class="co">[</span><span class="ot">2 \lambda \Lambda(t)</span><span class="co">]</span> \Phi\left<span class="co">[</span><span class="ot">-\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)+\omega)\right</span><span class="co">]</span>\right<span class="sc">\}</span> <span class="sc">\\</span></span>
+<span id="cb12-65"><a href="#cb12-65"></a>&amp;+\Lambda^{\prime}(t)\left<span class="sc">\{</span>\frac{\lambda}{\omega} \exp <span class="co">[</span><span class="ot">2 \lambda \Lambda(t)</span><span class="co">]</span> \phi\left<span class="co">[</span><span class="ot">-\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)+\omega)\right</span><span class="co">]</span>\right<span class="sc">\}</span></span>
+<span id="cb12-66"><a href="#cb12-66"></a>\end{aligned}</span>
+<span id="cb12-67"><a href="#cb12-67"></a>$$ 其中$\phi(\cdot)$是标准正态分布的PDF。</span>
+<span id="cb12-68"><a href="#cb12-68"></a></span>
+<span id="cb12-69"><a href="#cb12-69"></a>如果$t \rightarrow \infty$，则$\lambda \Lambda (t) \rightarrow \infty$和$Y(t)$服从渐近正态分布，其均值为$\Lambda (t)$，方差为$\frac{\Lambda (t)}{\lambda}$。因此，$T$的cdf是渐近为 $$</span>
+<span id="cb12-70"><a href="#cb12-70"></a>P(T&lt;t) \approx 1-\Phi\left<span class="co">[</span><span class="ot">\frac{\omega-\Lambda(t)}{\sqrt{\Lambda(t) / \lambda}}\right</span><span class="co">]</span>=\Phi\left<span class="co">[</span><span class="ot">\sqrt{\lambda \Lambda(t)}-\frac{\omega \sqrt{\lambda}}{\sqrt{\Lambda(t)}}\right</span><span class="co">]</span></span>
+<span id="cb12-71"><a href="#cb12-71"></a>$$ 当$\Lambda(t)=\eta t$ <span class="sc">\[</span>17<span class="sc">\]</span> 时，Eq.(5)是带有形状参数$(\omega \Lambda)^{-\frac{1}{2}}$和比例参数$\frac{\omega}{\eta}$的BS分布。也就是说，生命期$T$的cdf是一个渐近BS分布。因此，寿命$T$的平均故障时间(mean time to failure, MTTF)为BS分布的均值，即: $$</span>
+<span id="cb12-72"><a href="#cb12-72"></a>M T T F=E(T) \approx \frac{\omega}{\eta}+\frac{1}{2 \eta \lambda} .</span>
+<span id="cb12-73"><a href="#cb12-73"></a>$$ BS分布作为疲劳失效时间数据的有效寿命分布已被广泛研究<span class="sc">\[</span>18-22<span class="sc">\]</span>。但是，BS分布不适合作为退化模型，不能替代IG过程模型。</span>
+<span id="cb12-74"><a href="#cb12-74"></a></span>
+<span id="cb12-77"><a href="#cb12-77"></a><span class="in">```{r}</span></span>
+<span id="cb12-78"><a href="#cb12-78"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb12-79"><a href="#cb12-79"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb12-80"><a href="#cb12-80"></a><span class="fu">library</span>(viridis)</span>
+<span id="cb12-81"><a href="#cb12-81"></a><span class="fu">library</span>(statmod)</span>
+<span id="cb12-82"><a href="#cb12-82"></a><span class="in">```</span></span>
+<span id="cb12-83"><a href="#cb12-83"></a></span>
+<span id="cb12-84"><a href="#cb12-84"></a><span class="fu">#### 3.1.1 数据模拟产生</span></span>
+<span id="cb12-85"><a href="#cb12-85"></a></span>
+<span id="cb12-88"><a href="#cb12-88"></a><span class="in">```{r}</span></span>
+<span id="cb12-89"><a href="#cb12-89"></a><span class="co"># 数据模拟产生</span></span>
+<span id="cb12-90"><a href="#cb12-90"></a>sim_dat <span class="ot">=</span> <span class="cf">function</span>(<span class="at">group =</span> <span class="dv">6</span>, <span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">200</span>, <span class="at">para =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="fl">0.1</span>)){</span>
+<span id="cb12-91"><a href="#cb12-91"></a>  <span class="co"># para 指 eta,lambda  根据上面的公式（Lambda = eta * t）</span></span>
+<span id="cb12-92"><a href="#cb12-92"></a>  <span class="co"># epoch 指测量次数， group 指组数</span></span>
+<span id="cb12-93"><a href="#cb12-93"></a>  delta_t <span class="ot">=</span> <span class="fu">diff</span>(t)</span>
+<span id="cb12-94"><a href="#cb12-94"></a>  epoch <span class="ot">=</span> <span class="fu">length</span>(delta_t)</span>
+<span id="cb12-95"><a href="#cb12-95"></a>  dat <span class="ot">=</span> <span class="fu">matrix</span>(<span class="cn">NA</span>,epoch,group<span class="sc">+</span><span class="dv">1</span>)</span>
+<span id="cb12-96"><a href="#cb12-96"></a>  dat[,<span class="dv">1</span>] <span class="ot">=</span> <span class="fu">seq</span>(<span class="dv">1</span>,epoch)</span>
+<span id="cb12-97"><a href="#cb12-97"></a>  dat_unit <span class="ot">=</span> <span class="fu">numeric</span>()</span>
+<span id="cb12-98"><a href="#cb12-98"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>group){</span>
+<span id="cb12-99"><a href="#cb12-99"></a>    <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>epoch) dat_unit[j] <span class="ot">=</span> <span class="fu">rinvgauss</span>(<span class="dv">1</span>, <span class="at">mean=</span>para[<span class="dv">1</span>]<span class="sc">*</span>delta_t[j], <span class="at">shape=</span>(para[<span class="dv">1</span>]<span class="sc">*</span>delta_t[j])<span class="sc">^</span><span class="dv">2</span><span class="sc">*</span>para[<span class="dv">2</span>]) <span class="co"># shape = 1/ dispersion, 我们这是shape</span></span>
+<span id="cb12-100"><a href="#cb12-100"></a>    dat[,i<span class="sc">+</span><span class="dv">1</span>] <span class="ot">=</span> <span class="fu">cumsum</span>(dat_unit)</span>
+<span id="cb12-101"><a href="#cb12-101"></a>  }</span>
+<span id="cb12-102"><a href="#cb12-102"></a>  dat <span class="ot">=</span> <span class="fu">data.frame</span>(dat)</span>
+<span id="cb12-103"><a href="#cb12-103"></a>  dat1 <span class="ot">=</span> <span class="fu">rbind</span>(<span class="fu">rep</span>(<span class="dv">0</span>,group<span class="sc">+</span><span class="dv">1</span>),dat) <span class="co"># 加入初始值绘制点</span></span>
+<span id="cb12-104"><a href="#cb12-104"></a>  <span class="fu">colnames</span>(dat1) <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Time"</span>,<span class="fu">paste</span>(<span class="dv">1</span><span class="sc">:</span>group,<span class="at">sep=</span><span class="st">''</span>))</span>
+<span id="cb12-105"><a href="#cb12-105"></a>  <span class="fu">return</span>(dat1)</span>
+<span id="cb12-106"><a href="#cb12-106"></a>}</span>
+<span id="cb12-107"><a href="#cb12-107"></a><span class="in">```</span></span>
+<span id="cb12-108"><a href="#cb12-108"></a></span>
+<span id="cb12-109"><a href="#cb12-109"></a>绘制退化路径图</span>
+<span id="cb12-110"><a href="#cb12-110"></a></span>
+<span id="cb12-113"><a href="#cb12-113"></a><span class="in">```{r}</span></span>
+<span id="cb12-114"><a href="#cb12-114"></a><span class="co"># 绘制退化路径图</span></span>
+<span id="cb12-115"><a href="#cb12-115"></a>plot_path <span class="ot">=</span> <span class="cf">function</span>(<span class="at">data =</span> dat1){</span>
+<span id="cb12-116"><a href="#cb12-116"></a>    <span class="co"># 画图</span></span>
+<span id="cb12-117"><a href="#cb12-117"></a>  p <span class="ot">=</span> data <span class="sc">%&gt;%</span> <span class="fu">pivot_longer</span>(<span class="fu">paste</span>(<span class="dv">1</span><span class="sc">:</span>group), </span>
+<span id="cb12-118"><a href="#cb12-118"></a>                       <span class="at">names_to =</span> <span class="st">"Group"</span>, </span>
+<span id="cb12-119"><a href="#cb12-119"></a>                       <span class="at">values_to =</span> <span class="st">"y"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb12-120"><a href="#cb12-120"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(Time,y,<span class="at">color =</span> Group)) <span class="sc">+</span> </span>
+<span id="cb12-121"><a href="#cb12-121"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
+<span id="cb12-122"><a href="#cb12-122"></a>    <span class="fu">scale_color_viridis</span>(<span class="at">discrete =</span> T) <span class="sc">+</span> </span>
+<span id="cb12-123"><a href="#cb12-123"></a>    <span class="fu">ylab</span>(<span class="st">"Degradation"</span>) <span class="co">#+</span></span>
+<span id="cb12-124"><a href="#cb12-124"></a>    <span class="co">#theme_bw() +</span></span>
+<span id="cb12-125"><a href="#cb12-125"></a>    <span class="co">#theme(panel.grid = element_blank())</span></span>
+<span id="cb12-126"><a href="#cb12-126"></a>  <span class="fu">print</span>(p)</span>
+<span id="cb12-127"><a href="#cb12-127"></a>}</span>
+<span id="cb12-128"><a href="#cb12-128"></a><span class="in">```</span></span>
+<span id="cb12-129"><a href="#cb12-129"></a></span>
+<span id="cb12-132"><a href="#cb12-132"></a><span class="in">```{r}</span></span>
+<span id="cb12-133"><a href="#cb12-133"></a>group <span class="ot">=</span> <span class="dv">6</span></span>
+<span id="cb12-134"><a href="#cb12-134"></a>t <span class="ot">=</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">50</span></span>
+<span id="cb12-135"><a href="#cb12-135"></a>para <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">9</span>) <span class="co">#eta,lambda</span></span>
+<span id="cb12-136"><a href="#cb12-136"></a>dat <span class="ot">=</span> <span class="fu">sim_dat</span>(<span class="at">group =</span> group, <span class="at">t =</span> t, <span class="at">para =</span> para)</span>
+<span id="cb12-137"><a href="#cb12-137"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(dat))</span>
+<span id="cb12-138"><a href="#cb12-138"></a><span class="fu">plot_path</span>(dat)</span>
+<span id="cb12-139"><a href="#cb12-139"></a><span class="in">```</span></span>
+<span id="cb12-140"><a href="#cb12-140"></a></span>
+<span id="cb12-141"><a href="#cb12-141"></a><span class="fu">#### 3.1.2 统计推断</span></span>
+<span id="cb12-142"><a href="#cb12-142"></a></span>
+<span id="cb12-143"><a href="#cb12-143"></a>令$Y\left(t_{ij}\right)$为第$i$个测试单元在$t_{ij}$时刻测量的退化特性，其中$i=1， \ldots, n$和$j=$ $1， \ldots, m_i$。</span>
+<span id="cb12-144"><a href="#cb12-144"></a></span>
+<span id="cb12-145"><a href="#cb12-145"></a><span class="fu">##### 3.1.2.1 极大似然估计</span></span>
+<span id="cb12-146"><a href="#cb12-146"></a></span>
+<span id="cb12-147"><a href="#cb12-147"></a>根据$\Delta y_{ij}=Y\left(t_{ij}\right)-Y\left(t_{ij -1}\right)， i=1， \ldots n, j=1， \ldots, m_i$， $(\lambda, \eta)$的似然函数为 $$</span>
+<span id="cb12-148"><a href="#cb12-148"></a>L(\lambda, \eta)=\prod_{i=1}^n \prod_{j=1}^{m_i} f_{I G}\left(\Delta y_{i j}, \eta \Delta t_{i j}, \lambda \eta^2 \Delta^2 t_{i j}\right) .</span>
+<span id="cb12-149"><a href="#cb12-149"></a>$$ 对数似然函数为： $$</span>
+<span id="cb12-150"><a href="#cb12-150"></a>\log L(\lambda, \eta)=\sum_{i=1}^n \sum_{j=1}^{m_i}\left(\frac{1}{2} \log (\lambda)+\log (\eta)+\log \Delta t_{i j}-\frac{1}{2} \log \left(2 \pi \Delta y_{i j}^3\right)-\frac{\lambda\left(\Delta y_{i j}-\eta \Delta t_{i j}\right)^2}{2 \Delta t_{i j}}\right)</span>
+<span id="cb12-151"><a href="#cb12-151"></a>$$</span>
+<span id="cb12-152"><a href="#cb12-152"></a></span>
+<span id="cb12-153"><a href="#cb12-153"></a>$(\eta, \lambda)$ 对应的 Fisher 信息矩阵为 $$</span>
+<span id="cb12-154"><a href="#cb12-154"></a>I(\eta, \lambda)=\left[\begin{array}{cc}</span>
+<span id="cb12-155"><a href="#cb12-155"></a>\frac{\lambda \eta \tau+2 N}{\eta^2} &amp; \frac{N}{\lambda \eta} <span class="sc">\\</span></span>
+<span id="cb12-156"><a href="#cb12-156"></a>\frac{N}{\lambda \eta} &amp; \frac{N}{2 \lambda^2}</span>
+<span id="cb12-157"><a href="#cb12-157"></a>\end{array}\right],</span>
+<span id="cb12-158"><a href="#cb12-158"></a>$$ 其中， $\tau=\sum_{i=1}^n \sum_{j=1}^{m_i} \Delta t_{i j}$ 和 $N=\sum_{i=1}^n m_i$。</span>
+<span id="cb12-159"><a href="#cb12-159"></a></span>
+<span id="cb12-162"><a href="#cb12-162"></a><span class="in">```{r}</span></span>
+<span id="cb12-163"><a href="#cb12-163"></a>cumsub <span class="ot">=</span> <span class="cf">function</span>(x){</span>
+<span id="cb12-164"><a href="#cb12-164"></a>  <span class="co">#完成逐个相减功能，类似cumsum</span></span>
+<span id="cb12-165"><a href="#cb12-165"></a>  re <span class="ot">=</span> <span class="fu">numeric</span>()</span>
+<span id="cb12-166"><a href="#cb12-166"></a>  re[<span class="dv">1</span>] <span class="ot">=</span> x[<span class="dv">1</span>]</span>
+<span id="cb12-167"><a href="#cb12-167"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span><span class="fu">length</span>(x)){</span>
+<span id="cb12-168"><a href="#cb12-168"></a>    re[i] <span class="ot">=</span> x[i] <span class="sc">-</span> x[i<span class="dv">-1</span>]</span>
+<span id="cb12-169"><a href="#cb12-169"></a>  }</span>
+<span id="cb12-170"><a href="#cb12-170"></a>  <span class="fu">return</span>(re)</span>
+<span id="cb12-171"><a href="#cb12-171"></a>}</span>
+<span id="cb12-172"><a href="#cb12-172"></a><span class="in">```</span></span>
+<span id="cb12-173"><a href="#cb12-173"></a></span>
+<span id="cb12-176"><a href="#cb12-176"></a><span class="in">```{r}</span></span>
+<span id="cb12-177"><a href="#cb12-177"></a>IG_mle <span class="ot">=</span> <span class="cf">function</span>(<span class="at">par =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>),<span class="at">data =</span> dat){</span>
+<span id="cb12-178"><a href="#cb12-178"></a>  <span class="co"># 输入：eta,lambda，数据</span></span>
+<span id="cb12-179"><a href="#cb12-179"></a>  <span class="co"># 输出：负对数似然函数</span></span>
+<span id="cb12-180"><a href="#cb12-180"></a>  mu <span class="ot">=</span> par[<span class="dv">1</span>]; sigma <span class="ot">=</span> par[<span class="dv">2</span>]</span>
+<span id="cb12-181"><a href="#cb12-181"></a>  group <span class="ot">=</span> <span class="fu">ncol</span>(data) <span class="sc">-</span> <span class="dv">1</span>;time <span class="ot">=</span> data[,<span class="dv">1</span>];y <span class="ot">=</span> data[<span class="sc">-</span><span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb12-182"><a href="#cb12-182"></a>  <span class="co"># 差分得到delta_time和delta_y</span></span>
+<span id="cb12-183"><a href="#cb12-183"></a>  delta_time <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">rep</span>(<span class="fu">diff</span>(time),group),<span class="fu">length</span>(<span class="fu">diff</span>(time)),group)</span>
+<span id="cb12-184"><a href="#cb12-184"></a>  delta_y <span class="ot">=</span> <span class="fu">matrix</span>(<span class="cn">NA</span>,<span class="fu">nrow</span>(delta_time),group)</span>
+<span id="cb12-185"><a href="#cb12-185"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>group) delta_y[,i] <span class="ot">=</span> <span class="fu">cumsub</span>(y[,i])</span>
+<span id="cb12-186"><a href="#cb12-186"></a></span>
+<span id="cb12-187"><a href="#cb12-187"></a>  logl <span class="ot">=</span> <span class="fu">nrow</span>(delta_time)<span class="sc">*</span>group <span class="sc">*</span> (<span class="dv">1</span><span class="sc">/</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">log</span>(par[<span class="dv">2</span>]) <span class="sc">+</span> <span class="fu">log</span>(par[<span class="dv">1</span>])) <span class="sc">+</span> <span class="fu">sum</span>(<span class="fu">log</span>(delta_time) <span class="sc">-</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">log</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>delta_y<span class="sc">^</span><span class="dv">3</span>) <span class="sc">-</span> (par[<span class="dv">2</span>]<span class="sc">*</span>(delta_y <span class="sc">-</span> par[<span class="dv">1</span>]<span class="sc">*</span>delta_time)<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>delta_time),<span class="at">na.rm =</span>T)</span>
+<span id="cb12-188"><a href="#cb12-188"></a></span>
+<span id="cb12-189"><a href="#cb12-189"></a>  <span class="fu">return</span>(<span class="sc">-</span>logl)</span>
+<span id="cb12-190"><a href="#cb12-190"></a>}</span>
+<span id="cb12-191"><a href="#cb12-191"></a></span>
+<span id="cb12-192"><a href="#cb12-192"></a>mle_re <span class="ot">=</span> <span class="fu">optim</span>(<span class="at">par=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="fl">0.5</span>), <span class="at">fn =</span> IG_mle, </span>
+<span id="cb12-193"><a href="#cb12-193"></a>      <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"BFGS"</span>, <span class="at">hessian =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-194"><a href="#cb12-194"></a><span class="co"># mle_re</span></span>
+<span id="cb12-195"><a href="#cb12-195"></a>mle_par <span class="ot">=</span> mle_re<span class="sc">$</span>par</span>
+<span id="cb12-196"><a href="#cb12-196"></a><span class="co"># 区间估计</span></span>
+<span id="cb12-197"><a href="#cb12-197"></a>mle_up <span class="ot">=</span> mle_re<span class="sc">$</span>par <span class="sc">+</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">solve</span>(mle_re<span class="sc">$</span>hessian)))<span class="sc">*</span><span class="fu">qnorm</span>(<span class="fl">0.975</span>)</span>
+<span id="cb12-198"><a href="#cb12-198"></a>mle_low <span class="ot">=</span> mle_re<span class="sc">$</span>par <span class="sc">-</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(<span class="fu">solve</span>(mle_re<span class="sc">$</span>hessian)))<span class="sc">*</span><span class="fu">qnorm</span>(<span class="fl">0.975</span>) <span class="co">#hessian 和协方差矩阵存在逆的关系：https://blog.csdn.net/anruoxi3236/article/details/102005217</span></span>
+<span id="cb12-199"><a href="#cb12-199"></a>mle_summary <span class="ot">=</span> <span class="fu">round</span>(<span class="fu">cbind</span>(mle_low,mle_re<span class="sc">$</span>par,mle_up,para),<span class="dv">3</span>)</span>
+<span id="cb12-200"><a href="#cb12-200"></a><span class="fu">colnames</span>(mle_summary) <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"low"</span>,<span class="st">"mean"</span>,<span class="st">"up"</span>,<span class="st">"true"</span>)</span>
+<span id="cb12-201"><a href="#cb12-201"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(mle_summary) </span>
+<span id="cb12-202"><a href="#cb12-202"></a><span class="in">```</span></span>
+<span id="cb12-203"><a href="#cb12-203"></a></span>
+<span id="cb12-204"><a href="#cb12-204"></a><span class="at">&gt; lambda的估计结果存在问题</span></span>
+<span id="cb12-205"><a href="#cb12-205"></a></span>
+<span id="cb12-206"><a href="#cb12-206"></a><span class="at">&gt; 可靠度公式有问题，代码有问题</span></span>
+<span id="cb12-207"><a href="#cb12-207"></a></span>
+<span id="cb12-208"><a href="#cb12-208"></a>为了得到产品可靠度的估计, 只要将 $\hat{\eta} 、 \hat{\lambda}^2$ 代人时间 $t$ 的可靠度的表达式（1-F(t)）, 即 可得到可靠度的点估计为 $$</span>
+<span id="cb12-209"><a href="#cb12-209"></a>\begin{aligned}R(t) &amp;= 1-\Phi\left<span class="co">[</span><span class="ot">\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)-\omega)\right</span><span class="co">]</span>+e^{2 \lambda \Lambda(t)} \Phi\left<span class="co">[</span><span class="ot">-\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)+\omega)\right</span><span class="co">]</span></span>
+<span id="cb12-210"><a href="#cb12-210"></a>\end{aligned}</span>
+<span id="cb12-211"><a href="#cb12-211"></a>$$</span>
+<span id="cb12-212"><a href="#cb12-212"></a></span>
+<span id="cb12-213"><a href="#cb12-213"></a><span class="in">```{r,collapse=TRUE}</span></span>
+<span id="cb12-214"><a href="#cb12-214"></a><span class="do">## 可靠度计算</span></span>
+<span id="cb12-215"><a href="#cb12-215"></a>IG_R <span class="ot">=</span> <span class="cf">function</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">threshold =</span> <span class="dv">6</span>, <span class="at">par =</span> mle_par){</span>
+<span id="cb12-216"><a href="#cb12-216"></a>  R <span class="ot">=</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">pnorm</span>(<span class="fu">sqrt</span>(par[<span class="dv">2</span>]<span class="sc">/</span>threshold)<span class="sc">*</span>(par[<span class="dv">1</span>]<span class="sc">*</span>t <span class="sc">-</span> threshold)) <span class="sc">+</span></span>
+<span id="cb12-217"><a href="#cb12-217"></a>    <span class="fu">exp</span>(<span class="dv">2</span><span class="sc">*</span>par[<span class="dv">2</span>]<span class="sc">*</span>par[<span class="dv">1</span>]<span class="sc">*</span>t)<span class="sc">*</span><span class="fu">pnorm</span>(<span class="sc">-</span><span class="fu">sqrt</span>(par[<span class="dv">2</span>]<span class="sc">/</span>threshold <span class="sc">*</span>(par[<span class="dv">1</span>]<span class="sc">*</span>t <span class="sc">+</span> threshold)))</span>
+<span id="cb12-218"><a href="#cb12-218"></a>  <span class="fu">return</span>(R)</span>
+<span id="cb12-219"><a href="#cb12-219"></a>}</span>
+<span id="cb12-220"><a href="#cb12-220"></a><span class="co"># 给个简单例子</span></span>
+<span id="cb12-221"><a href="#cb12-221"></a><span class="fu">IG_R</span>(<span class="at">t =</span> <span class="dv">100</span>, <span class="at">threshold =</span> <span class="dv">150</span>,<span class="at">par =</span> mle_par)</span>
+<span id="cb12-222"><a href="#cb12-222"></a><span class="co"># 绘制带区间估计的可靠度函数（需要优化为 ggplot 绘制）</span></span>
+<span id="cb12-223"><a href="#cb12-223"></a><span class="fu">plot</span>(<span class="fu">IG_R</span>(<span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">300</span>, <span class="at">threshold =</span> <span class="dv">150</span>,<span class="at">par =</span> mle_par),<span class="at">type =</span> <span class="st">"l"</span>,<span class="at">ylab =</span> <span class="st">'Reliability'</span>,<span class="at">xlab =</span> <span class="st">"time"</span>)</span>
+<span id="cb12-224"><a href="#cb12-224"></a><span class="fu">lines</span>(<span class="fu">IG_R</span>(<span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">300</span>, <span class="at">threshold =</span> <span class="dv">1500</span>,<span class="at">par =</span> mle_up))</span>
+<span id="cb12-225"><a href="#cb12-225"></a><span class="fu">lines</span>(<span class="fu">IG_R</span>(<span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">300</span>, <span class="at">threshold =</span> <span class="dv">1500</span>,<span class="at">par =</span> mle_low))</span>
+<span id="cb12-226"><a href="#cb12-226"></a><span class="in">```</span></span>
+<span id="cb12-227"><a href="#cb12-227"></a></span>
+<span id="cb12-228"><a href="#cb12-228"></a><span class="fu">##### 3.1.2.2 客观贝叶斯分析</span></span>
+<span id="cb12-229"><a href="#cb12-229"></a></span>
+<span id="cb12-230"><a href="#cb12-230"></a><span class="at">&gt; 来自：Guan, Q., et al. (2019). "Reference Bayesian analysis of inverse Gaussian degradation process." Applied Mathematical Modelling 74: 496-511.（IG + 客观贝叶斯）</span></span>
+<span id="cb12-231"><a href="#cb12-231"></a></span>
+<span id="cb12-232"><a href="#cb12-232"></a><span class="fu">##### 3.1.2.3 广义推断方法</span></span>
+<span id="cb12-233"><a href="#cb12-233"></a></span>
+<span id="cb12-234"><a href="#cb12-234"></a>暂时还未找到，最经典的维纳过程的广义推断方法论文。其他类似的论文整理如下：</span>
+<span id="cb12-235"><a href="#cb12-235"></a></span>
+<span id="cb12-236"><a href="#cb12-236"></a><span class="fu">### 3.3 案例分析</span></span>
+<span id="cb12-237"><a href="#cb12-237"></a></span>
+<span id="cb12-238"><a href="#cb12-238"></a><span class="fu">#### 激光器件 Laser 数据集</span></span>
+<span id="cb12-239"><a href="#cb12-239"></a></span>
+<span id="cb12-240"><a href="#cb12-240"></a><span class="at">&gt; 数据集来自 Meeker, W. Q. (1998). Statistical Methods for Reliability Data。</span></span>
+<span id="cb12-241"><a href="#cb12-241"></a></span>
+<span id="cb12-242"><a href="#cb12-242"></a>激光器件的质量特征是其**工作电流**。当工作电流达到预定义的阈值水平ω = 10时，该设备被认为是故障。其电流的测量频率为每250小时一次，实验在4000小时时终止。图1(a)显示了15个被测试单元的退化路径及其拟合的平均趋势。</span>
+<span id="cb12-243"><a href="#cb12-243"></a></span>
+<span id="cb12-246"><a href="#cb12-246"></a><span class="in">```{r}</span></span>
+<span id="cb12-247"><a href="#cb12-247"></a>Laser_dat <span class="ot">=</span> <span class="fu">read.csv</span>(<span class="st">"dataset/GaAsLaser.csv"</span>)</span>
+<span id="cb12-248"><a href="#cb12-248"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(Laser_dat))</span>
+<span id="cb12-249"><a href="#cb12-249"></a>Laser_dat<span class="sc">$</span>Unit <span class="ot">=</span> <span class="fu">as.factor</span>(Laser_dat<span class="sc">$</span>Unit)</span>
+<span id="cb12-250"><a href="#cb12-250"></a><span class="in">```</span></span>
+<span id="cb12-251"><a href="#cb12-251"></a></span>
+<span id="cb12-254"><a href="#cb12-254"></a><span class="in">```{r}</span></span>
+<span id="cb12-255"><a href="#cb12-255"></a>Laser_dat <span class="sc">%&gt;%</span> <span class="fu">ggplot</span>(<span class="fu">aes</span>(Hours,Value,<span class="at">fill =</span> Unit)) <span class="sc">+</span></span>
+<span id="cb12-256"><a href="#cb12-256"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">0.1</span>) <span class="sc">+</span> </span>
+<span id="cb12-257"><a href="#cb12-257"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span> </span>
+<span id="cb12-258"><a href="#cb12-258"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb12-259"><a href="#cb12-259"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
+<span id="cb12-260"><a href="#cb12-260"></a>  <span class="co"># scale_color_viridis(discrete = T) + </span></span>
+<span id="cb12-261"><a href="#cb12-261"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">'none'</span>) <span class="sc">+</span></span>
+<span id="cb12-262"><a href="#cb12-262"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Hours"</span>, <span class="at">y =</span> <span class="st">"Degradation characteristic"</span>)</span>
+<span id="cb12-263"><a href="#cb12-263"></a><span class="in">```</span></span>
+<span id="cb12-264"><a href="#cb12-264"></a></span>
+<span id="cb12-265"><a href="#cb12-265"></a><span class="fu">#### 防辐射 Anti-radiation 数据集</span></span>
+<span id="cb12-266"><a href="#cb12-266"></a></span>
+<span id="cb12-267"><a href="#cb12-267"></a><span class="at">&gt; 数据来源：Song, B., et al. (2017). "Performance evaluation of anti-radiation based on the gamma degradation process." Science China Technological Sciences 60(4): 501-509.</span></span>
+<span id="cb12-268"><a href="#cb12-268"></a></span>
+<span id="cb12-269"><a href="#cb12-269"></a><span class="at">&gt; 分析结果参考：Guan, Q., et al. (2019). "Reference Bayesian analysis of inverse Gaussian degradation process." Applied Mathematical Modelling 74: 496-511.（IG + 客观贝叶斯）</span></span>
+<span id="cb12-270"><a href="#cb12-270"></a></span>
+<span id="cb12-271"><a href="#cb12-271"></a>数据还未下载（文中有，具体怎么做的试验，还未学习），pdf已经存在Endnote中了。</span>
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+</body></html>

@@ -254,6 +254,8 @@ Laser_dat %>% ggplot(aes(Hours,Value,fill = Unit)) +
 
 数据还未下载（文中有，具体怎么做的试验，还未学习），pdf已经存在Endnote中了。
 
-Peng, W. W., et al. (2014). "Inverse Gaussian process models for degradation analysis: A Bayesian perspective." Reliability Engineering & System Safety **130**: 175-189.（贝叶斯相关）
+Peng, W. W., et al. (2014). "**Inverse Gaussian process** models for degradation analysis: A Bayesian perspective." Reliability Engineering & System Safety **130**: 175-189.（贝叶斯相关）
+
+Peng, C.-Y. (2015). "Inverse Gaussian Processes With Random Effects and Explanatory Variables for Degradation Data." Technometrics **57**(1): 100-111.
 
 \

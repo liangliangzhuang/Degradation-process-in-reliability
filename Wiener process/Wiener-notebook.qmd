@@ -13,7 +13,7 @@ format:
     code-block-bg: true
 editor: visual
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -207,107 +207,29 @@ $$
 ```{r,collapse=TRUE}
 ## 可靠度计算
 Wiener_R = function(t = 100, threshold = 150,par = mle_par){
-  R = pnorm((threshold - par[1]*t)/(par[2]*sqrt(t))) - exp(2*par[1]*threshold/par[2]) * pnorm((-threshold - par[1]*t)/(par[2]*sqrt(t))) 
+  R = pnorm((threshold - par[1]*t)/(par[2]*sqrt(t))) - exp(2*par[1]*threshold/(par[2]^2)) * pnorm((-threshold - par[1]*t)/(par[2]*sqrt(t))) 
   return(R)
 }
-# 给个简单例子
-Wiener_R(t = 100, threshold = 150,par = mle_par)
-# 绘制带区间估计的可靠度函数（需要优化为 ggplot 绘制）
-plot(Wiener_R(t = 1:300, threshold = 150,par = mle_par),type = "l",ylab = 'Reliability',xlab = "time")
-lines(Wiener_R(t = 1:300, threshold = 150,par = mle_up))
-lines(Wiener_R(t = 1:300, threshold = 150,par = mle_low))
+
 ```
 
-> 为什么 mle_up 绘制出来的结果这么奇怪？
-
-##### 3.1.2.2 客观贝叶斯分析
-
-<<<<<<< Updated upstream
-来源于：He, L., et al. (2016). "Objective Bayesian analysis of degradation model with respect to a Wiener process." Journal of Systems Science and Complexity 29(6): 1737-1751.
-
-###### 先验确定
-
-The Fisher information matrix of the parameter $\theta = (\mu,\sigma^2_\mu,\sigma^2_\omega)$ is given by $$
-H(\theta)=\left(\begin{array}{ccc}
-\frac{n t_m}{\frac{\sigma_\omega^2+m_m}{} \sigma_\mu^2} & 0 & 0 \\
-0 & \frac{n t_m^2}{2\left(\sigma_\omega^2+t_m \sigma_\mu^2\right)^2} & \frac{n t_m}{2\left(\sigma_\omega^2+t_m \sigma_\mu^2\right)^2} \\
-0 & \frac{n t_m}{2\left(\sigma_\omega^2+t_m \sigma_\mu^2\right)^2} & \frac{n(m-1)}{2 \sigma_\omega^4}+\frac{n}{2\left(\sigma_\omega^2+t_m \sigma_\mu^2\right)^2}
-\end{array}\right).$$
-
-**The Jeffreys prior** for $\theta$ is given by $$\pi_J(\theta) \propto \sigma_\omega^{-2}\left(\sigma_\omega^2+t_m \sigma_\mu^2\right)^{-\frac{3}{2}}.$$
-
-**The reference priors** in Table 1 can be rewritten in the unified form $$\pi_{R_1}(\theta) \propto \sigma_\omega^{-p}\left(t_m \sigma_\mu^2+\sigma_\omega^2\right)^{-q}$$ or $$\pi_{R_2}(\theta) \propto \sigma_\omega^{-r}\left(\frac{\sigma_\mu^2}{\sigma_\omega^2}\right)^{-t}\left(1+\frac{t_m \sigma_\mu^2}{\sigma_\omega^2}\right)^{-\frac{s}{2}} \psi\left(\frac{\sigma_\mu^2}{\sigma_\omega^2}\right)$$ for certain constants $p, q, r$ and $t$, and $s$ is either 0 or 1.
-
-![](images/paste-344BAEA9.png)
-=======
-给一个简单例子，当前时刻为10，计算对应的RUL密度函数
-```{r}
-rul_den = RUL_density(t = 1:100, cur_time = 100, threshold = 150, par = mle_par)
-plot(rul_den,type = 'l',xlab = "Time", ylab = "RUL")
-```
-
-计算未来某些时刻（`fut_time  = c(50,55,60,65,70,75,80)`）的RUL（`time_epoch = 1:100`），并绘制3D图形。
+给个简单例子
 
 ```{r}
-fut_time = c(50,55,60,65,70,75,80)
-time_epoch = 1:100
-rul_den = matrix(NA,length(time_epoch),length(fut_time))
-for(i in 1:length(fut_time)){
-  rul_den[,i] = RUL_density(t = time_epoch, cur_time = fut_time[i], threshold = 150, par = mle_par)
-}
-dim(rul_den)
+R_time = 1:300
+R_data = data.frame("Time" = R_time,
+  "Up" = Wiener_R(t = R_time, threshold = 150,par = mle_up),
+           "Mean" = Wiener_R(t = R_time, threshold = 150,par = mle_par),
+           "Low" = Wiener_R(t = R_time, threshold = 150,par = mle_low))
+
+# 绘制带区间估计的可靠度函数
+ggplot(R_data) +
+  geom_line(aes(Time,Up),color = "gray60",linetype = 2) +
+  geom_line(aes(Time,Mean)) +
+  geom_line(aes(Time,Low),color = "gray60",linetype = 2) +
+  ylab("Reliability") + xlab("time")
 ```
 
-使用真实参数值计算RUL值。
-
-```{r}
-# 真实数据
-true_rul_den = matrix(NA,length(time_epoch),length(fut_time))
-for(i in 1:length(fut_time)){
-  true_rul_den[,i] = RUL_density(t = time_epoch, cur_time = fut_time[i], threshold = 150, par = par)
-}
-real_RUL = apply(true_rul_den,2,which.max)
-real_RUL
-```
-
-```{r}
-# 未来时刻fut_time下的RUL值
-RUL_3D_density = function(fut_time,time_epoch,rul_den,
-                          threshold,real_RUL,
-                          zlim = c(0,0.1)){
-  library(plot3D)
-  col = c("#02B1e6", "#E81D22", "#F9BC15", "#8015f9", "#20e81d", "#e64602","black")
-  scatter3D(time_epoch, rep(1,length(time_epoch)), rul_den[,1], bty = "b2",colkey = FALSE,
-          phi = 14,theta = 55,
-          pch = 18,alpha = 0, expand =0.2,ticktype = "detailed",
-          xlim = c(0,100),
-          ylim = c(min(fut_time)-5,max(fut_time)+5),
-          zlim = zlim,
-          xlab = "RUL", ylab = "Time", zlab = "Kernel Distribution")
-
-# 循环绘制3D图形
-for(i in 1:length(fut_time)){
-  # 密度函数
-  scatter3D(time_epoch, rep(fut_time[i],length(time_epoch)), rul_den[,i], 
-            add = TRUE,type ='l', col = col[i], pch = 16) 
-  # 预测值
-   scatter3D(which.max(rul_den[,i]), fut_time[i], 0, 
-             add = TRUE, type ='h', col = "black", pch = 16) 
-   # 真实值
-   scatter3D(real_RUL[i],fut_time[i], 0,
-             add = TRUE, type ='h', col = "red", pch = 5)
-}
-legend("top", legend = c("RUL distribution","Point estimation","Real value"),
-       pch=c(NA,16,5), col = c(col[1],"black","red"),lty = c(1,NA,NA)) #,inset = .05
-# 7.8,6.4
-}
-```
-
-```{r}
-#| fig-width: 6
-#| fig-align: "center"
-RUL_3D_density(fut_time,time_epoch,rul_den,threshold,real_RUL,zlim = c(0,0.08))
-```
 
 ##### 3.1.2.2 贝叶斯分析
 
@@ -413,81 +335,15 @@ traceplot(fit1,pars = c("mu","w"),
 ```
 
 可以看出，效果较好。真实值为：$\mu = 2,w = 1 / \sigma^2 = 0.25$，估计值为：$\mu = 2,w = 1 / \sigma^2 = 0.5$。 估计值的$\sigma^2$ 有些问题，应该如何处理？
->>>>>>> Stashed changes
 
-###### 后验计算
 
-<<<<<<< Updated upstream
-1.  Under the priors $\pi_{R_1}(\theta)$
-=======
 ##### 3.1.2.3 客观贝叶斯分析
->>>>>>> Stashed changes
 
-the joint posterior densities of $\left(\mu, \sigma_\mu^2, \sigma_\omega^2\right)$ are given by $$
-\begin{aligned}
-\pi_{R_1}\left(\mu, \sigma_\mu^2, \sigma_\omega^2 \mid y\right) \propto &\left(\sigma_\omega^2\right)^{-\frac{m n-n+p}{2}}\left(\sigma_\omega^2+t_m \sigma_\mu^2\right)^{-\frac{n+2 q}{2}} \\
-& \cdot \exp \left\{-\frac{1}{2}\left[\frac{a}{\sigma_\omega^2}+\frac{b}{\sigma_\omega^2+t_m \sigma_\mu^2}+x^{\prime} \Lambda^{-1} x(\mu-\widehat{\mu})^2\right]\right\}
-\end{aligned}
-$$ where $$
-\begin{aligned}
-&a=\operatorname{tr}\left(Y^{\prime} \Psi^{-1} Y\right)-\frac{1}{t_m} \tau^{\prime} \Psi^{-1} Y Y^{\prime} \Psi^{-1} \tau \\
-&b=\frac{1}{t_m} \tau^{\prime} \Psi^{-1} Y Y^{\prime} \Psi^{-1} \tau-\frac{1}{n t_m} \tau^{\prime} \Psi^{-1} Y 1_n 1_n^{\prime} Y^{\prime} \Psi^{-1} \tau
-\end{aligned}
-$$
+暂时还未找到，最经典的维纳过程客观贝叶斯分析。
 
-> Theorem 1 the priors $\pi_{R1}(\theta)$, the posterior distributions $\pi_{R_1}(\mu,\sigma^2_\mu, \sigma_\omegaω ^2|y)$ are proper when $m, n > 1$.
+-   维纳（线性） + 随机效应：
 
-------------------------------------------------------------------------
 
-2.  Under the priors $\pi_{R_2}(\theta)$
-
-Denote $\eta=\frac{\sigma_\mu^2}{\sigma_\omega^2}$, then the joint posterior density of $\left(\mu, \sigma_\omega^2, \eta\right)$ under the priors $\pi_{R_2}(\theta)$ can be written as $$
-\begin{aligned}
-\pi_{R_2}\left(\mu, \sigma_\omega^2, \eta \mid y\right) \propto &\left(\sigma_\omega^2\right)^{-\frac{m n+r-2}{2}} \eta^{-t}\left(1+\eta t_m\right)^{-\frac{n+s}{2}} \psi(\eta) \\
-& \cdot \exp \left\{-\frac{1}{2}\left[\frac{1}{\sigma_\omega^2}\left(a+\frac{b}{1+\eta t_m}\right)+x^{\prime} \Lambda^{-1} x(\mu-\widehat{\mu})^2\right]\right\} .
-\end{aligned}
-$$
-
-> Theorem 2: when $n>3$, then the posterior distributions $\pi_{R_2}\left(\mu, \sigma_\omega^2\right.$, $\eta \mid y)$ are proper.
-
-3.  Under the priors $\pi_{J}(\theta)$
-
-> Corollary 3 For the model (1), under the Jefferys prior $\pi_J(\theta)$, the posterior distribution is proper.
-
--   后验分布抽样
-
-1.  $\pi_{R_1}(\theta)$ 后验分布抽样
-
-A Monte Carlo (MC) simulation algorithm is employed to generate the samples from the joint posterior distribution. However, only the marginal density of $\delta$ and $\gamma$ can be written in analytic form, where $\delta$ and $\gamma$ are defined in (A.4). So a two-step rejection sampling procedure in \[18\] is used here, which is a straightforward strategy to generate samples for parameters $\sigma_\mu^2$ and $\sigma_\omega^2$. The algorithm is summarized as follows:
-
-**Step 1**: Generate values of $\delta$ and $\gamma$ from two inverse gamma distributions, which are $$
-\begin{aligned}
-&{[\delta \mid y] \sim I G\left(\frac{m n-n+p-2}{2}, \frac{a}{2}\right)} \\
-&{[\gamma \mid y] \sim I G\left(\frac{n+2 q-3}{2}, \frac{b}{2}\right)}
-\end{aligned}
-$$
-
-**Step 2**: Retain those sets of values that obey the restricted parameter space of $\delta$ and $\gamma$.
-
-**Step 3**: Generate a value of $\mu$ from the normal distribution $N\left(\widehat{\mu}, \frac{\sigma_\omega^2+t_m \sigma_\mu^2}{n t_m}\right)$ by using the values $\sigma_\mu^2$ and $\sigma_\omega^2$ obtained, where $\widehat{\mu}$ is defined in (5).
-
--   $\pi_{R_2}(\theta)$ 后验分布抽样
-
-It's quite obvious that the conditional distributions for the parameters $\mu$ and $\sigma_\omega^2$ is easily simulated, since they are normal distribution and inverse-Gamma distribution respectively. However, due to the complexity of the conditional distribution of the parameter $\eta$, we suggest taking the Metropolis-Hasting ${ }^{[19]}$ sampling scheme for $\eta$. The sampling process is as follows:
-
-**Step 1**: Under $\pi_{R_2}$, the marginal posterior distribution of $\eta, \pi(\eta \mid y)$, is proportional to $$
-\eta^{-t}\left(1+\eta t_m\right)^{-\frac{n+s-1}{2}} \psi(\eta)\left(a+\frac{b}{1+\eta t_m}\right)^{-\frac{m n+r-5}{2}} .
-$$
-
-**Step 2**: For the current $\eta$, sample a value of $\sigma_\omega^2$ from its conditional posterior distribution $\pi_{R_2}\left(\sigma_\omega^2 \mid \eta, y\right)$, which is an inverse-Gamma distribution with the shape parameter $\frac{m n+r-5}{2}$ and the scale parameter $\frac{1}{2}\left(a+\frac{b}{1+\eta t_m}\right)$.
-
-**Step 3**: Given $\eta$ and $\sigma_\omega^2$, generate a value of $\mu$ from its conditional posterior distribution $\pi_{R_2}\left(\mu \mid \eta, \sigma_\omega^2, y\right)$, which is a normal distribution with the mean $\widehat{\mu}$ and the variance $\frac{\sigma_\omega^2\left(1+\eta t_m\right)}{n t_m}$.
-
-For Step 1, a random-walk Metropolis algorithm can be used to sample for $\eta$. Considering the new candidate parameter value, labeled $v$, which is drawn from a normal distribution $N\left(\eta, \rho^2\right)$ truncated on the interval $(0, \infty)$, where $\rho^2$ is a tuning parameter. Truncated normal random numbers can be readily generated by using the function rtnorm in the $m s m$ package of $R$ software. Then the candidate value is accepted with probability $$
-\min \left\{1, \frac{\pi_{R_2}(v \mid y) \Phi\left(\frac{\eta}{\rho}\right)}{\pi_{R_2}(\eta \mid y) \Phi\left(\frac{v}{\rho}\right)}\right\},
-$$ where $\Phi(\cdot)$ is the cumulative distribution function of the standard normal.
-
-Here, one may care about the choice of the tuning parameter $\rho^2$ in Step 1. Obviously, small values of $\rho^2$ will lead to large autocorrelations and result in high acceptance rates but slow convergence, while the opposite conclusion holds for high values of $\rho^2$. Albert commented that the range of acceptance rates between $25\%$ and $45\%$ is good for random walk chains with normal proposal densities. Thus, one can try several values of $\rho^2$ until the desired acceptance rate is achieved in practice.
 
 ##### 3.1.2.4 广义推断方法
 
@@ -580,6 +436,8 @@ $$ 通过搜索得到 $b$ 的极大似然估计 $\hat{b}$, 并将其代人式 (3
 
 ### 3.3 含随机效应情形
 
+#### 3.3.1 二阶段的极大似然方法
+
 考虑漂移参数和扩散参数服从正态 - 逆 Gamma 分布的情形, 利用 $n$ 个样品的退化 试验数据对随机效应的分布参数 $\nu 、 \eta 、 \alpha 、 \beta$ 进行估计。这里采用两阶段法, 即首先估计 个体产品的固定效应退化过程的参数, 再利用估计的参数值来得到随机效应分布参数 的估计。
 
 对产品 $i$, 分别在时刻 $t_{i 0}=0, t_{i 1}, t_{i 2}, \cdots, t_{i m_i}$ 对其进行 $m_i+1$ 次测量, $i=1,2, \cdots, n$, 得 到的测量数据为 $x_{i j}$ 。记 $\Delta x_{i j}=x_{i j}-x_{i, j-1}$, 即 $\Delta x_{i j}$ 为产品 $i$ 在 $t_{i j-1}$ 到 $t_{i j}$ 之间的退化量增量, 由式 (3.41), 给定试验数据 $\Delta x_{i j}$ 的情况下, 样品 $i$ 的退化过程模型参数 $\mu_i, \sigma_i^2$ 的极大似然估计为 $$
@@ -608,6 +466,11 @@ $$ 解上面的方程组得到 $$
 \hat{\eta}=\frac{1}{n}\left(\sum_{i=1}^n \frac{\hat{\mu}_i^2}{\hat{D}_i}-\left(\sum_{i=1}^n \frac{\hat{\mu}_i}{\hat{D}_i}\right)^2 / \sum_{i=1}^n \frac{1}{\hat{D}_i}\right)
 \end{array}\right.
 $$
+
+#### 3.3.2 客观贝叶斯方法
+
+
+
 
 ### 3.4 有测量误差情形
 

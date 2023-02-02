@@ -222,6 +222,7 @@ lines(Wiener_R(t = 1:300, threshold = 150,par = mle_low))
 
 ##### 3.1.2.2 客观贝叶斯分析
 
+<<<<<<< Updated upstream
 来源于：He, L., et al. (2016). "Objective Bayesian analysis of degradation model with respect to a Wiener process." Journal of Systems Science and Complexity 29(6): 1737-1751.
 
 ###### 先验确定
@@ -238,10 +239,189 @@ H(\theta)=\left(\begin{array}{ccc}
 **The reference priors** in Table 1 can be rewritten in the unified form $$\pi_{R_1}(\theta) \propto \sigma_\omega^{-p}\left(t_m \sigma_\mu^2+\sigma_\omega^2\right)^{-q}$$ or $$\pi_{R_2}(\theta) \propto \sigma_\omega^{-r}\left(\frac{\sigma_\mu^2}{\sigma_\omega^2}\right)^{-t}\left(1+\frac{t_m \sigma_\mu^2}{\sigma_\omega^2}\right)^{-\frac{s}{2}} \psi\left(\frac{\sigma_\mu^2}{\sigma_\omega^2}\right)$$ for certain constants $p, q, r$ and $t$, and $s$ is either 0 or 1.
 
 ![](images/paste-344BAEA9.png)
+=======
+给一个简单例子，当前时刻为10，计算对应的RUL密度函数
+```{r}
+rul_den = RUL_density(t = 1:100, cur_time = 100, threshold = 150, par = mle_par)
+plot(rul_den,type = 'l',xlab = "Time", ylab = "RUL")
+```
+
+计算未来某些时刻（`fut_time  = c(50,55,60,65,70,75,80)`）的RUL（`time_epoch = 1:100`），并绘制3D图形。
+
+```{r}
+fut_time = c(50,55,60,65,70,75,80)
+time_epoch = 1:100
+rul_den = matrix(NA,length(time_epoch),length(fut_time))
+for(i in 1:length(fut_time)){
+  rul_den[,i] = RUL_density(t = time_epoch, cur_time = fut_time[i], threshold = 150, par = mle_par)
+}
+dim(rul_den)
+```
+
+使用真实参数值计算RUL值。
+
+```{r}
+# 真实数据
+true_rul_den = matrix(NA,length(time_epoch),length(fut_time))
+for(i in 1:length(fut_time)){
+  true_rul_den[,i] = RUL_density(t = time_epoch, cur_time = fut_time[i], threshold = 150, par = par)
+}
+real_RUL = apply(true_rul_den,2,which.max)
+real_RUL
+```
+
+```{r}
+# 未来时刻fut_time下的RUL值
+RUL_3D_density = function(fut_time,time_epoch,rul_den,
+                          threshold,real_RUL,
+                          zlim = c(0,0.1)){
+  library(plot3D)
+  col = c("#02B1e6", "#E81D22", "#F9BC15", "#8015f9", "#20e81d", "#e64602","black")
+  scatter3D(time_epoch, rep(1,length(time_epoch)), rul_den[,1], bty = "b2",colkey = FALSE,
+          phi = 14,theta = 55,
+          pch = 18,alpha = 0, expand =0.2,ticktype = "detailed",
+          xlim = c(0,100),
+          ylim = c(min(fut_time)-5,max(fut_time)+5),
+          zlim = zlim,
+          xlab = "RUL", ylab = "Time", zlab = "Kernel Distribution")
+
+# 循环绘制3D图形
+for(i in 1:length(fut_time)){
+  # 密度函数
+  scatter3D(time_epoch, rep(fut_time[i],length(time_epoch)), rul_den[,i], 
+            add = TRUE,type ='l', col = col[i], pch = 16) 
+  # 预测值
+   scatter3D(which.max(rul_den[,i]), fut_time[i], 0, 
+             add = TRUE, type ='h', col = "black", pch = 16) 
+   # 真实值
+   scatter3D(real_RUL[i],fut_time[i], 0,
+             add = TRUE, type ='h', col = "red", pch = 5)
+}
+legend("top", legend = c("RUL distribution","Point estimation","Real value"),
+       pch=c(NA,16,5), col = c(col[1],"black","red"),lty = c(1,NA,NA)) #,inset = .05
+# 7.8,6.4
+}
+```
+
+```{r}
+#| fig-width: 6
+#| fig-align: "center"
+RUL_3D_density(fut_time,time_epoch,rul_den,threshold,real_RUL,zlim = c(0,0.08))
+```
+
+##### 3.1.2.2 贝叶斯分析
+
+基于 rstan 进行贝叶斯估计。详细的参考文献如下：
+
+- 最新、入门级别 [rstan](https://mirrors.sjtug.sjtu.edu.cn/cran/web/packages/rstan/vignettes/rstan.html) 资料。
+
+- [官网资料](https://mc-stan.org/users/interfaces/rstan)
+
+基于前面所提的经典线性维纳过程，利用 rstan 进行贝叶斯分析。
+
+$$
+\begin{aligned}
+&\Delta X_{ij} = N(\mu \Delta t_{ij}, \sigma^2 \Delta t_{ij}),\\
+&w = \frac{1}{\sigma^2} \sim Gam(a,b),\\
+& \mu|w \sim N(d,\frac{c}{w}).
+\end{aligned}
+$$
+
+其中，$a = b = 1, d = 0, c =100$。
+
+构建模型（`wiener_linear.stan`）
+
+```markdown
+data {
+  int<lower=0> I;
+  int<lower=0> J;
+  matrix[I,J] x;
+  matrix[I,J] t;
+}
+
+parameters {
+  real mu;
+  real<lower=0> w;
+}
+
+model {
+  w ~ gamma(1,1);
+  mu ~ normal(0, 100/w);
+  for (i in 1:I){
+    for (j in 1:J) {
+      x[i,j] ~ normal(mu * t[i,j], 1/w * t[i,j]);
+    }
+  }
+}
+
+```
+> 存在问题：这里的normal中，sigma是标准差还是方差？
+
+- 数据准备
+
+准备$\Delta t_{ij}$ 和 $\Delta x_{ij}$的数据，并且标志出矩阵的维数。
+
+```{r}
+# 数据准备
+group = ncol(dat) - 1;time = dat[,1];y = dat[-1,-1]
+# 差分得到delta_time和delta_y
+delta_time = matrix(rep(diff(time),group),length(diff(time)),group)
+delta_y = matrix(NA,nrow(delta_time),group)
+for(i in 1:group) delta_y[,i] = cumsub(y[,i])
+dim(delta_y)
+
+wiener_data <- list(
+  I = nrow(delta_y),
+  J = ncol(delta_y),
+  x = delta_y,
+  t = delta_time
+)
+dim(delta_y)
+```
+
+
+```{r}
+#| warning: false
+#| message: false
+# 后验抽样
+library(rstan)
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
+fit1 = stan(
+  file = "wiener_linear.stan",
+  data = wiener_data,
+  chains = 1,
+  warmup = 1000,
+  iter = 2000,
+  cores = 4,
+  refresh = 0
+)
+```
+
+输出各个参数的后验估计结果并进行绘制。
+
+```{r}
+print(fit1,
+      probs = c(0.1,0.5,0.9))
+
+plot(fit1)
+
+traceplot(fit1,pars = c("mu","w"),
+          inc_warmup = T,
+          nrow = 1) +
+  theme(legend.position = "top")
+```
+
+可以看出，效果较好。真实值为：$\mu = 2,w = 1 / \sigma^2 = 0.25$，估计值为：$\mu = 2,w = 1 / \sigma^2 = 0.5$。 估计值的$\sigma^2$ 有些问题，应该如何处理？
+>>>>>>> Stashed changes
 
 ###### 后验计算
 
+<<<<<<< Updated upstream
 1.  Under the priors $\pi_{R_1}(\theta)$
+=======
+##### 3.1.2.3 客观贝叶斯分析
+>>>>>>> Stashed changes
 
 the joint posterior densities of $\left(\mu, \sigma_\mu^2, \sigma_\omega^2\right)$ are given by $$
 \begin{aligned}
@@ -309,7 +489,7 @@ $$ where $\Phi(\cdot)$ is the cumulative distribution function of the standard n
 
 Here, one may care about the choice of the tuning parameter $\rho^2$ in Step 1. Obviously, small values of $\rho^2$ will lead to large autocorrelations and result in high acceptance rates but slow convergence, while the opposite conclusion holds for high values of $\rho^2$. Albert commented that the range of acceptance rates between $25\%$ and $45\%$ is good for random walk chains with normal proposal densities. Thus, one can try several values of $\rho^2$ until the desired acceptance rate is achieved in practice.
 
-##### 3.1.2.3 广义推断方法
+##### 3.1.2.4 广义推断方法
 
 暂时还未找到，最经典的维纳过程的广义推断方法论文。其他类似的论文整理如下：
 

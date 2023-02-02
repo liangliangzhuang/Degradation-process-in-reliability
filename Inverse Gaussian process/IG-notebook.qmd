@@ -22,17 +22,19 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ## 1. IG 退化过程模型
 
-> 来源：Ye, Z.-S. and M. Xie (2015). "Stochastic modelling and analysis of degradation for highly reliable products." Applied Stochastic Models in Business and Industry 31(1): 16-32.
+<!-- > 来源：Ye, Z.-S. and M. Xie (2015). "Stochastic modelling and analysis of degradation for highly reliable products." Applied Stochastic Models in Business and Industry 31(1): 16-32. -->
 
-虽然 Wiener 过程和 Gamma 过程在退化建模中得到了广泛的应用，但这两种模型在实际应用中无法拟合大量退化数据。当这两个过程失败时，另一个选择是逆高斯(inverse Gaussian, IG)过程。
+<!-- 虽然 Wiener 过程和 Gamma 过程在退化建模中得到了广泛的应用，但这两种模型在实际应用中无法拟合大量退化数据。当这两个过程失败时，另一个选择是逆高斯(inverse Gaussian, IG)过程。 -->
 
-如果过程$\{Y(t);t \geqslant 0\}$具有独立的 IG 分布增量，则称为基本的 IG 过程，即$Y(t) \sim \operatorname{IG}\left(\mu \Lambda(t)， \lambda \Lambda^2(t)\right)$，其中$\Lambda(t)$是非负且单调递增的。IG $(a, b), a, b>0$ 的PDF为 $$
-f_{\mathrm{IG}}(y ; a, b)=\left(\frac{b}{2 \pi y^3}\right)^{1 / 2} \exp \left[-\frac{b(y-a)^2}{2 a^2 y}\right], y>0
-$$ 在Wang和Xu\[48\]最近的一项研究之前，IG过程很少被用作退化模型。这可能是因为这个过程没有物理解释。因此，可靠性工程师可能不知道如何以及何时使用该过程进行退化建模。为了弥补这一差距，Ye and Chen \[49\]探索了这一过程的物理意义。他们发现 IG 过程与 Gamma 过程类似，也是复合泊松过程的极限，但震动大小分布与 Gamma 过程不同。此外，他们还发现，与 Gamma 过程相比，IG 过程在合并协变量和随机效应方面非常灵活。灵活性来自于Wiener过程和IG过程之间的逆关系，如下所示。
+<!-- 如果过程$\{Y(t);t \geqslant 0\}$具有独立的 IG 分布增量，则称为基本的 IG 过程，即$Y(t) \sim \operatorname{IG}\left(\mu \Lambda(t)， \lambda \Lambda^2(t)\right)$，其中$\Lambda(t)$是非负且单调递增的。IG $(a, b), a, b>0$ 的PDF为 $$ -->
 
-回想一下，维纳过程$X(u)=v u+\sigma \mathrm{B}(u)$到一个固定阈值的第一次传递时间$\Lambda$是一个IG随机变量$Y \sim \operatorname{IG}\left(\Lambda / v， \Lambda^2 / \sigma^2\right)$。如果我们有一系列由$t$索引的阈值$\Lambda$，我们将有一系列对应的失败次数$Y(t)$。很容易表明$Y(t)$遵循一个IG过程$Y(t) \sim \operatorname{IG}\left(\mu \Lambda(t)， \Lambda \Lambda^2(t)\right)$，其中$\mu=1 / \nu$和$\ Lambda =1 / \sigma^2$。有趣的是，只要Wiener过程中有一种方法可以合并协变量和随机效应，那么IG过程中也有相应的方法可以通过逆关系来合并协变量和随机效应。例如，在维纳过程中，我们可以假设$\nu$是正常的，$\sigma$是固定的，或者我们可以假设$\sigma^{-2} \sim \operatorname{Gamma}(r， \delta)$和$\left[v \mid \sigma^2\right] \sim \mathrm{N}\left(v， \theta \sigma^2\right)$。因此，我们可以假设$\mu=1 / v$是正常的，或者假设在IG进程中$\lambda=\sigma^{-2} \sim \operatorname{Gamma}(r,\delta)$和$[1 / \mu \mid \lambda] \sim \mathrm{N}(v， \theta / \lambda)$。由此得到的IG随机效应模型的边际分布是可处理的。类似地，在$2.3$中回顾的Wiener过程中合并协变量的方法可以通过逆关系扩展到IG过程。
+<!-- f_{\mathrm{IG}}(y ; a, b)=\left(\frac{b}{2 \pi y^3}\right)^{1 / 2} \exp \left[-\frac{b(y-a)^2}{2 a^2 y}\right], y>0 -->
 
-在Wang和Xu\[48\]的工作中，针对IG过程提出了一种基于EM算法的半参数估计方法，其中函数$\Lambda(t)$非参数估计。EM算法需要IG过程的条件增量的期望，这是很难得到的。在Ye\[50\]中导出了期望的闭合表达式。这些结果为IG过程的EM算法的实现提供了便利。Peng等人\[51\]为IG过程开发了贝叶斯方法。然而，IG过程在退化文献中仍然是新的。退化模拟过程的性质需要进一步探索。
+<!-- $$ 在Wang和Xu\[48\]最近的一项研究之前，IG过程很少被用作退化模型。这可能是因为这个过程没有物理解释。因此，可靠性工程师可能不知道如何以及何时使用该过程进行退化建模。为了弥补这一差距，Ye and Chen \[49\]探索了这一过程的物理意义。他们发现 IG 过程与 Gamma 过程类似，也是复合泊松过程的极限，但震动大小分布与 Gamma 过程不同。此外，他们还发现，与 Gamma 过程相比，IG 过程在合并协变量和随机效应方面非常灵活。灵活性来自于Wiener过程和IG过程之间的逆关系，如下所示。 -->
+
+<!-- 回想一下，维纳过程$X(u)=v u+\sigma \mathrm{B}(u)$到一个固定阈值的第一次传递时间$\Lambda$是一个IG随机变量$Y \sim \operatorname{IG}\left(\Lambda / v， \Lambda^2 / \sigma^2\right)$。如果我们有一系列由$t$索引的阈值$\Lambda$，我们将有一系列对应的失败次数$Y(t)$。很容易表明$Y(t)$遵循一个IG过程$Y(t) \sim \operatorname{IG}\left(\mu \Lambda(t)， \Lambda \Lambda^2(t)\right)$，其中$\mu=1 / \nu$和$\ Lambda =1 / \sigma^2$。有趣的是，只要Wiener过程中有一种方法可以合并协变量和随机效应，那么IG过程中也有相应的方法可以通过逆关系来合并协变量和随机效应。例如，在维纳过程中，我们可以假设$\nu$是正常的，$\sigma$是固定的，或者我们可以假设$\sigma^{-2} \sim \operatorname{Gamma}(r， \delta)$和$\left[v \mid \sigma^2\right] \sim \mathrm{N}\left(v， \theta \sigma^2\right)$。因此，我们可以假设$\mu=1 / v$是正常的，或者假设在IG进程中$\lambda=\sigma^{-2} \sim \operatorname{Gamma}(r,\delta)$和$[1 / \mu \mid \lambda] \sim \mathrm{N}(v， \theta / \lambda)$。由此得到的IG随机效应模型的边际分布是可处理的。类似地，在$2.3$中回顾的Wiener过程中合并协变量的方法可以通过逆关系扩展到IG过程。 -->
+
+<!-- 在Wang和Xu\[48\]的工作中，针对IG过程提出了一种基于EM算法的半参数估计方法，其中函数$\Lambda(t)$非参数估计。EM算法需要IG过程的条件增量的期望，这是很难得到的。在Ye\[50\]中导出了期望的闭合表达式。这些结果为IG过程的EM算法的实现提供了便利。Peng等人\[51\]为IG过程开发了贝叶斯方法。然而，IG过程在退化文献中仍然是新的。退化模拟过程的性质需要进一步探索。 -->
 
 ### 3.1 经典的 IG 过程
 
@@ -66,6 +68,8 @@ f(t)=& \Lambda^{\prime}(t)\left\{\frac{\lambda}{\omega} \phi\left[\frac{\sqrt{\l
 \end{aligned}
 $$ 其中$\phi(\cdot)$是标准正态分布的PDF。
 
+> 这里的推导有错误吧！
+
 如果$t \rightarrow \infty$，则$\lambda \Lambda (t) \rightarrow \infty$和$Y(t)$服从渐近正态分布，其均值为$\Lambda (t)$，方差为$\frac{\Lambda (t)}{\lambda}$。因此，$T$的cdf是渐近为 $$
 P(T<t) \approx 1-\Phi\left[\frac{\omega-\Lambda(t)}{\sqrt{\Lambda(t) / \lambda}}\right]=\Phi\left[\sqrt{\lambda \Lambda(t)}-\frac{\omega \sqrt{\lambda}}{\sqrt{\Lambda(t)}}\right]
 $$ 当$\Lambda(t)=\eta t$ \[17\] 时，Eq.(5)是带有形状参数$(\omega \Lambda)^{-\frac{1}{2}}$和比例参数$\frac{\omega}{\eta}$的BS分布。也就是说，生命期$T$的cdf是一个渐近BS分布。因此，寿命$T$的平均故障时间(mean time to failure, MTTF)为BS分布的均值，即: $$
@@ -81,18 +85,25 @@ library(statmod)
 
 #### 3.1.1 数据模拟产生
 
+假设$Y(t) \sim \operatorname{IG}\left( \mu \Lambda(t)， \lambda \Lambda^2(t)\right)$。根据增量独立性和服从IG分布，模拟数据产生。
+
+为方便起见，假设$\mu = 1$、$\Lambda(t) = \eta t$，$\eta = 1$。之后再加上其他线性表示方式(这里主要复现已有结果)。比如：$\Lambda(t) = t^\alpha$、$\Lambda(t) = \exp(t)$、$\Lambda(t) = \log(t)$。
+
 ```{r}
 # 数据模拟产生
-sim_dat = function(group = 6, t = 1:200, para = c(1,0.1)){
-  # para 指 eta,lambda  根据上面的公式（Lambda = eta * t）
-  # epoch 指测量次数， group 指组数
-  delta_t = diff(t)
+sim_dat = function(group = 6, t = 1:200, para = c(1,0.1), fun_nonlinear = "linear", fun_par = c(1)){
+  if (fun_nonlinear == "linear"){
+    Lam = t*fun_par[1]
+  }
+  # para 指 mu、lambda
+  # epoch 指测量次数，group 指组数
+  delta_t = diff(Lam)
   epoch = length(delta_t)
   dat = matrix(NA,epoch,group+1)
   dat[,1] = seq(1,epoch)
   dat_unit = numeric()
   for(i in 1:group){
-    for(j in 1:epoch) dat_unit[j] = rinvgauss(1, mean=para[1]*delta_t[j], shape=(para[1]*delta_t[j])^2*para[2]) # shape = 1/ dispersion, 我们这是shape
+    for(j in 1:epoch) dat_unit[j] = rinvgauss(1, mean=para[1]*delta_t[j], shape=delta_t[j]^2*para[2]) # shape = 1/ dispersion, 我们这是shape
     dat[,i+1] = cumsum(dat_unit)
   }
   dat = data.frame(dat)
@@ -121,11 +132,14 @@ plot_path = function(data = dat1){
 }
 ```
 
+模拟产生数据，令$\mu =1,\lambda = 3, eta = 1$
+
 ```{r}
 group = 6
-t = 1:50
-para = c(3,9) #eta,lambda
-dat = sim_dat(group = group, t = t, para = para)
+t = 1:5
+para = c(1,3,1) # mu = 1, lambda = 3, eta = 1
+dat = sim_dat(group = group, t = t, para = para,
+              fun_nonlinear = "linear", fun_par = para[3]) 
 knitr::kable(head(dat))
 plot_path(dat)
 ```
@@ -161,11 +175,12 @@ cumsub = function(x){
 }
 ```
 
+构建函数`IG_mle`，其中par中表示$\eta$和$\lambda$。
+
 ```{r}
-IG_mle = function(par = c(1,1),data = dat){
-  # 输入：eta,lambda，数据
+IG_mle = function(par = c(1,3),data = dat){
+  # 输入：eta,lambda 数据
   # 输出：负对数似然函数
-  mu = par[1]; sigma = par[2]
   group = ncol(data) - 1;time = data[,1];y = data[-1,-1]
   # 差分得到delta_time和delta_y
   delta_time = matrix(rep(diff(time),group),length(diff(time)),group)
@@ -176,15 +191,34 @@ IG_mle = function(par = c(1,1),data = dat){
 
   return(-logl)
 }
+```
 
-mle_re = optim(par=c(1,0.5), fn = IG_mle, 
+使用
+
+mle_re = optim(par=c(1,3), fn = IG_mle,
+
+data = dat, method = "BFGS", hessian = TRUE)
+
+\# mle_re
+
+mle_par = mle_re\$par \# 1，3
+
+```{r}
+mle_re = optim(par=c(1,3), fn = IG_mle, 
       data = dat, method = "BFGS", hessian = TRUE)
 # mle_re
-mle_par = mle_re$par
+mle_par = mle_re$par # 1，3
+mle_par
+```
+
+```{r}
 # 区间估计
 mle_up = mle_re$par + sqrt(diag(solve(mle_re$hessian)))*qnorm(0.975)
 mle_low = mle_re$par - sqrt(diag(solve(mle_re$hessian)))*qnorm(0.975) #hessian 和协方差矩阵存在逆的关系：https://blog.csdn.net/anruoxi3236/article/details/102005217
-mle_summary = round(cbind(mle_low,mle_re$par,mle_up,para),3)
+```
+
+```{r}
+mle_summary = round(cbind(mle_low,mle_re$par,mle_up,c(para[3],para[2])),3)
 colnames(mle_summary) = c("low","mean","up","true")
 knitr::kable(mle_summary) 
 ```
@@ -193,14 +227,14 @@ knitr::kable(mle_summary)
 
 > 可靠度公式有问题，代码有问题
 
-为了得到产品可靠度的估计, 只要将 $\hat{\eta} 、 \hat{\lambda}^2$ 代人时间 $t$ 的可靠度的表达式（1-F(t)）, 即 可得到可靠度的点估计为 $$
+为了得到产品可靠度的估计, 只要将 $\hat{\eta} 、 \hat{\lambda}^2$ 代人时间 $t$ 的可靠度的表达式（1-F(t)）, 即可得到可靠度的点估计为 $$
 \begin{aligned}R(t) &= 1-\Phi\left[\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)-\omega)\right]+e^{2 \lambda \Lambda(t)} \Phi\left[-\sqrt{\frac{\lambda}{\omega}}(\Lambda(t)+\omega)\right]
 \end{aligned}
 $$
 
 ```{r,collapse=TRUE}
 ## 可靠度计算
-IG_R = function(t = 10, threshold = 6, par = mle_par){
+IG_R = function(t = 1, threshold = 6, par = mle_par){
   R = 1 - pnorm(sqrt(par[2]/threshold)*(par[1]*t - threshold)) +
     exp(2*par[2]*par[1]*t)*pnorm(-sqrt(par[2]/threshold *(par[1]*t + threshold)))
   return(R)
@@ -208,9 +242,13 @@ IG_R = function(t = 10, threshold = 6, par = mle_par){
 # 给个简单例子
 IG_R(t = 100, threshold = 150,par = mle_par)
 # 绘制带区间估计的可靠度函数（需要优化为 ggplot 绘制）
-plot(IG_R(t = 1:300, threshold = 150,par = mle_par),type = "l",ylab = 'Reliability',xlab = "time")
-lines(IG_R(t = 1:300, threshold = 1500,par = mle_up))
-lines(IG_R(t = 1:300, threshold = 1500,par = mle_low))
+plot(IG_R(t = 1:5, threshold = 5,par = mle_par),type = "l",ylab = 'Reliability',xlab = "time")
+lines(IG_R(t = 1:5, threshold = 5,par = mle_up))
+lines(IG_R(t = 1:5, threshold = 5,par = mle_low))
+```
+
+```{r}
+IG_R(t = 1, threshold = 150,par = mle_par)
 ```
 
 ##### 3.1.2.2 客观贝叶斯分析

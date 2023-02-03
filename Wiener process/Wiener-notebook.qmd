@@ -78,7 +78,15 @@ $$ 式中: $\{B(t)\}, t \geqslant 0$ 是标准 Wiener 过程或标准布朗运�
 
 (2) 对任意两个不相交的时间区间 $\left[t_1, t_2\right],\left[t_3, t_4\right], t_1<t_2 \leqslant t_3<t_4$, 增量 $X\left(t_4\right)-X$ $\left(t_3\right)$ 与 $X\left(t_2\right)-X\left(t_1\right)$ 相互独立。
 
-如果产品的性能退化过程是一元 Wiener 过程,假设其运行到时刻 $\tau$ 仍末失效, 且 当前性能退化量为 $x_\tau\left(x_\tau<l\right)$, 则产品的剩余寿命 $T_1$ 可以表示为 $$
+**可靠度**
+
+如果产品的性能退化过程是一元 Wiener 过程，失效阈值为$l$。 则可靠度为 $$
+R(t)= 1-F(t ; {\mu}, {\sigma})=\Phi\left(\frac{l-{\mu} t}{{\sigma} \sqrt{t}}\right)-\exp \left(\frac{2 {\mu} l}{{\sigma}^2}\right) \Phi\left(\frac{-l-{\mu} t}{{\sigma} \sqrt{t}}\right)
+$$
+
+**剩余使用寿命**
+
+假设其运行到时刻 $\tau$ 仍末失效, 且当前性能退化量为 $x_\tau\left(x_\tau<l\right)$, 则产品的剩余寿命 $T_1$ 可以表示为 $$
 T_1=\inf \left\{t \mid X(t+\tau) \geqslant l, X(\tau)=x_\tau, t \geqslant 0\right\}
 $$ 由一元 Wiener 过程的独立增量性质和齐次马尔可夫性得到 $$
 \begin{aligned}
@@ -122,7 +130,7 @@ sim_dat = function(group = 6, t = 1:200, para = c(1,0.1)){
 # 绘制退化路径图
 plot_path = function(data = dat1){
     # 画图
-  p = data %>% pivot_longer(paste(1:group), 
+  p = data %>% pivot_longer(paste(1:ncol(data[,-1])), 
                        names_to = "Group", 
                        values_to = "y") %>% 
     ggplot(aes(Time,y,color = Group)) + 
@@ -135,10 +143,12 @@ plot_path = function(data = dat1){
 }
 ```
 
+
+
 ```{r}
 group = 6
 t = 1:200
-para = c(1,1)
+para = c(2,2)
 dat = sim_dat(group = group, t = t, para = para)
 knitr::kable(head(dat))
 plot_path(dat)
@@ -200,9 +210,7 @@ colnames(mle_summary) = c("low","mean","up")
 knitr::kable(mle_summary) 
 ```
 
-为了得到产品可靠度的估计, 只要将 $\hat{\mu} 、 \hat{\sigma}^2$ 代人任务时间 $t$ 的可靠度的表达式, 即 可得到可靠度的点估计为 $$
-R(t)=1-F(t ; \hat{\mu}, \hat{\sigma})=\Phi\left(\frac{l-\hat{\mu} t}{\hat{\sigma} \sqrt{t}}\right)-\exp \left(\frac{2 \hat{\mu} l}{\hat{\sigma}^2}\right) \Phi\left(\frac{-l-\hat{\mu} t}{\hat{\sigma} \sqrt{t}}\right)
-$$
+为了得到产品可靠度的估计, 只要将 $\hat{\mu} 、 \hat{\sigma}^2$ 代人任务时间 $t$ 的可靠度的表达式。
 
 ```{r,collapse=TRUE}
 ## 可靠度计算
@@ -230,14 +238,92 @@ ggplot(R_data) +
   ylab("Reliability") + xlab("time")
 ```
 
+剩余使用寿命
+
+```{r}
+## 剩余使用寿命计算
+RUL_density = function(t = 1:100, cur_time = 100, threshold = 150, par = mle_par){
+  RUL = (threshold - cur_time)/(sqrt(2*pi*mle_par[2]^2*t^3)) * exp(-(threshold-cur_time - mle_par[1] * t)^2/(2 * mle_par[2]^2 * t)) 
+  return(RUL)
+}
+```
+
+给一个简单例子，当前时刻为10，计算对应的RUL密度函数
+```{r}
+rul_den = RUL_density(t = 1:100, cur_time = 100, threshold = 150, par = mle_par)
+plot(rul_den,type = 'l',xlab = "Time", ylab = "RUL")
+```
+
+计算未来某些时刻（`fut_time  = c(50,55,60,65,70,75,80)`）的RUL（`time_epoch = 1:100`），并绘制3D图形。
+
+```{r}
+fut_time = c(50,55,60,65,70,75,80)
+time_epoch = 1:100
+rul_den = matrix(NA,length(time_epoch),length(fut_time))
+for(i in 1:length(fut_time)){
+  rul_den[,i] = RUL_density(t = time_epoch, cur_time = fut_time[i], threshold = 150, par = mle_par)
+}
+dim(rul_den)
+```
+
+使用真实参数值计算RUL值。
+
+```{r}
+# 真实数据
+true_rul_den = matrix(NA,length(time_epoch),length(fut_time))
+for(i in 1:length(fut_time)){
+  true_rul_den[,i] = RUL_density(t = time_epoch, cur_time = fut_time[i], threshold = 150, par = par)
+}
+real_RUL = apply(true_rul_den,2,which.max)
+real_RUL
+```
+
+```{r}
+# 未来时刻fut_time下的RUL值
+RUL_3D_density = function(fut_time,time_epoch,rul_den,
+                          threshold,real_RUL,
+                          zlim = c(0,0.1)){
+  library(plot3D)
+  col = c("#02B1e6", "#E81D22", "#F9BC15", "#8015f9", "#20e81d", "#e64602","black")
+  scatter3D(time_epoch, rep(1,length(time_epoch)), rul_den[,1], bty = "b2",colkey = FALSE,
+          phi = 14,theta = 55,
+          pch = 18,alpha = 0, expand =0.2,ticktype = "detailed",
+          xlim = c(0,100),
+          ylim = c(min(fut_time)-5,max(fut_time)+5),
+          zlim = zlim,
+          xlab = "RUL", ylab = "Time", zlab = "Kernel Distribution")
+# 循环绘制3D图形
+for(i in 1:length(fut_time)){
+  # 密度函数
+  scatter3D(time_epoch, rep(fut_time[i],length(time_epoch)), rul_den[,i], 
+            add = TRUE,type ='l', col = col[i], pch = 16) 
+  # 预测值
+   scatter3D(which.max(rul_den[,i]), fut_time[i], 0, 
+             add = TRUE, type ='h', col = "black", pch = 16) 
+   # 真实值
+   scatter3D(real_RUL[i],fut_time[i], 0,
+             add = TRUE, type ='h', col = "red", pch = 5)
+}
+legend("top", legend = c("RUL distribution","Point estimation","Real value"),
+       pch=c(NA,16,5), col = c(col[1],"black","red"),lty = c(1,NA,NA)) #,inset = .05
+# 7.8,6.4
+}
+```
+
+```{r}
+#| fig-width: 6
+#| fig-align: "center"
+RUL_3D_density(fut_time,time_epoch,rul_den,threshold,real_RUL,zlim = c(0,0.08))
+```
+
 
 ##### 3.1.2.2 贝叶斯分析
 
 基于 rstan 进行贝叶斯估计。详细的参考文献如下：
 
-- 最新、入门级别 [rstan](https://mirrors.sjtug.sjtu.edu.cn/cran/web/packages/rstan/vignettes/rstan.html) 资料。
+-   最新、入门级别 [rstan](https://mirrors.sjtug.sjtu.edu.cn/cran/web/packages/rstan/vignettes/rstan.html) 资料。
 
-- [官网资料](https://mc-stan.org/users/interfaces/rstan)
+-   [官网资料](https://mc-stan.org/users/interfaces/rstan)
 
 基于前面所提的经典线性维纳过程，利用 rstan 进行贝叶斯分析。
 
@@ -253,7 +339,7 @@ $$
 
 构建模型（`wiener_linear.stan`）
 
-```markdown
+``` markdown
 data {
   int<lower=0> I;
   int<lower=0> J;
@@ -275,11 +361,11 @@ model {
     }
   }
 }
-
 ```
+
 > 存在问题：这里的normal中，sigma是标准差还是方差？
 
-- 数据准备
+-   数据准备
 
 准备$\Delta t_{ij}$ 和 $\Delta x_{ij}$的数据，并且标志出矩阵的维数。
 
@@ -300,7 +386,6 @@ wiener_data <- list(
 )
 dim(delta_y)
 ```
-
 
 ```{r}
 #| warning: false
@@ -336,14 +421,11 @@ traceplot(fit1,pars = c("mu","w"),
 
 可以看出，效果较好。真实值为：$\mu = 2,w = 1 / \sigma^2 = 0.25$，估计值为：$\mu = 2,w = 1 / \sigma^2 = 0.5$。 估计值的$\sigma^2$ 有些问题，应该如何处理？
 
-
 ##### 3.1.2.3 客观贝叶斯分析
 
 暂时还未找到，最经典的维纳过程客观贝叶斯分析。
 
 -   维纳（线性） + 随机效应：
-
-
 
 ##### 3.1.2.4 广义推断方法
 
@@ -367,191 +449,305 @@ Wang, X. F., et al. (2021). "Degradation data analysis based on gamma process wi
 
 Jiang, P. H., et al. (2019). "Inference for constant-stress accelerated degradation test based on Gamma process." Applied Mathematical Modelling 67: 123-134.
 
-### 3.2 多应力和动态环境情形
+<!-- ### 3.2 多应力和动态环境情形 -->
 
-**1. 多应力情形**
+<!-- **1. 多应力情形** -->
 
-某些产品的性能退化过程较慢, 要在较短时间获得较多性能退化数据较为困难,通 常需要提高试验应力加快其退化过程。下面给出基于加速退化试验数据的模型参数估计方法。
+<!-- 某些产品的性能退化过程较慢, 要在较短时间获得较多性能退化数据较为困难,通 常需要提高试验应力加快其退化过程。下面给出基于加速退化试验数据的模型参数估计方法。 -->
 
-假设在不同应力下, 一元 Wiener 过程模型的参数是应力 $S$ 的函数 $$
-\mu=\mu\left(S ; \boldsymbol{\theta}_\mu\right), \sigma=\sigma\left(S ; \boldsymbol{\theta}_\sigma\right)
-$$ 式中: $\theta_\mu 、 \theta_\sigma$ 是末知参数向量。
+<!-- 假设在不同应力下, 一元 Wiener 过程模型的参数是应力 $S$ 的函数 $$ -->
 
-对不同类型应力, $\mu\left(S ; \boldsymbol{\theta}_\mu\right), \sigma\left(S ; \boldsymbol{\theta}_\sigma\right)$ 的形式和参数不同。比如对漂移参数 $\mu$, 应力 为温度时通常采用阿伦尼斯模型进行描述 $$
-\mu(S)=a \mathrm{e}^{-b / S}
-$$
+<!-- \mu=\mu\left(S ; \boldsymbol{\theta}_\mu\right), \sigma=\sigma\left(S ; \boldsymbol{\theta}_\sigma\right) -->
 
-如果应力是电压、功率等, 则通常采用幂律模型 $$
-\mu(S)=a S^b
-$$
+<!-- $$ 式中: $\theta_\mu 、 \theta_\sigma$ 是末知参数向量。 -->
 
-根据加速退化试验中应力的变化情况,加速退化试验又分别为**恒定应力加速退化试验**、**步进应力加速退化试验**和**序进应力加速退化试验**。
+<!-- 对不同类型应力, $\mu\left(S ; \boldsymbol{\theta}_\mu\right), \sigma\left(S ; \boldsymbol{\theta}_\sigma\right)$ 的形式和参数不同。比如对漂移参数 $\mu$, 应力 为温度时通常采用阿伦尼斯模型进行描述 $$ -->
 
-恒定应力加速退化试验是目前应用最广、研究最多的, 这里考虑由恒定应力加速退化试验得到的加速退化数据。
+<!-- \mu(S)=a \mathrm{e}^{-b / S} -->
 
-设产品在 $S_0, S_1, \cdots, S_s$ 共 $s+1$ 个应力下进行退化试验, 其中应力 $S_0$ 为正常工作应 力。应力 $S_i$ 下共得到 $n_i$ 个产品的性能退化数据, 其中对产品 $j$, 初始时刻 $t_{i j 0}$ 的退化量 为 $X_{i j 0}=0$, 分别在时刻 $t_{i j 1}, \cdots, t_{i j m_{i j}}$ 测量其性能退化量 $X_{i j 1}, \cdots, X_{i j m_{i j}}$, 其中 $i=0,1, \cdots, s, j=$ $1,2, \cdots, n_i$ 记 $\Delta t_{i j k}=t_{i j k}-t_{i j(k-1)}, \Delta X_{i j k}=X_{i j k}-X_{i j(k-1)}$, 其中 $k=1,2, \cdots, m_{i j}$ 。由各应力下 的退化数据 $\left\{\Delta x_{i j k}\right\}$ 得到模型参数的似然函数为 $$
-L\left(\boldsymbol{\theta}_\mu, \boldsymbol{\theta}_\sigma\right)=\prod_{i=0}^3 \prod_{j=1}^{n_i} \prod_{k=1}^{m_{i j}} \frac{1}{\sqrt{2 \pi \sigma^2\left(S_i\right) \Delta t_{i j k}}} \exp \left[-\frac{\left(\Delta x_{i j k}-\mu\left(S_i\right) \Delta t_{i j k}\right)^2}{2 \sigma^2\left(S_i\right) \Delta t_{i j k}}\right]
-$$
+<!-- $$ -->
 
-则参数 $\boldsymbol{\theta}_\mu 、 \boldsymbol{\theta}_\sigma$ 的极大似然估计 $\hat{\boldsymbol{\theta}}_\mu 、 \hat{\boldsymbol{\theta}}_\sigma$ 可以采用数值方法求式 (3.49) 的极大值得到。则 常应力 $S_0$ 下参数 $\mu 、 \sigma^2$ 为 $$
-\mu=\mu\left(S_0 ; \hat{\boldsymbol{\theta}}_\mu\right), \sigma^2=\sigma^2\left(S_0 ; \hat{\boldsymbol{\theta}}_\sigma\right)
-$$ 产品可靠度点估计可由式 (3.42)得到。
+<!-- 如果应力是电压、功率等, 则通常采用幂律模型 $$ -->
 
-**2. 动态环境情形**
+<!-- \mu(S)=a S^b -->
 
-与基于失效的可靠性建模方法相比, 退化过程模型的优点在于可以直接描述应力 对产品退化过程 (如退化速率) 的影响, 为解释产品失效过程、利用各种可能的数据提 供了可能。下面考虑动态环境下的参数估计问题。设动态环境下的应力过程为 $\{S$ $(t), t \geqslant 0\}$, 并且假设应力对退化速率的影响函数为 $\beta_0 \cdot h(S(t) ; b)$, 其中 $\beta_0$ 是基准应 力下的退化速率, 以 $b$ 为参数的函数 $h(S(t) ; b)$ 表示应力的影响, $b$ 是待估参数。认为 应力对退化速率的影响是立即发生的, 即没有时间延迟, 并且退化符合累计损伤规律, 则可知时刻 $t$ 产品退化量取值为 $$
-X(t \mid T(\tau), 0 \leqslant \tau \leqslant t)=\beta_0 \int_0^t h(S(\tau) ; b) \mathrm{d} \tau+\sigma_B B(t)
-$$ 式中: $\{S(\tau), 0 \leqslant \tau \leqslant t\}$ 为 $[0, \tau]$ 内的应力; $\{B(t), t \geqslant 0\}$ 为标准 Wiener 过程; 模型待估 参数为 $$
-\boldsymbol{\theta}=\left(\beta_0, b, \sigma_B^2\right)
-$$
+<!-- $$ -->
 
-设有 $n$ 个产品进行退化试验, 不失一般性, 考虑规则型连续测量情形。对产品 $i$, 设 时刻 $t_{i k}$ 观测到的退化量为 $X_i\left(t_{i k}\right), k=0,1,2, \cdots, m\left(t_{i 0}=0\right)$; 对环境进行连续观测, 时刻 $j$ 观测到应力取值为 $S_{i j}, j=1,2, \cdots$ 。需要注意的是,退化量的测量间隔与环境监测时间 间隔可能是不同的,这里假设后者的监测更频繁。不失一般性, 假设环境监测间隔为 1 个时间单位, 则 $t_{i k}-t_{i, k-1} \geqslant 1, k=1,2, \cdots$ 。下面基于动态环境下的退化试验数据, 给出 模型参数的**极大似然估计**方法。
+<!-- 根据加速退化试验中应力的变化情况,加速退化试验又分别为**恒定应力加速退化试验**、**步进应力加速退化试验**和**序进应力加速退化试验**。 -->
 
-根据模型式 $(3.51)$, 记 $\nu_{i k}=\sum_{j=1}^{t_{i k}} h\left(S_{i j} ; b\right)$, 对产品 $i$ 以及时刻 $t_{i k}$ 近似的有 $$
-X_i\left(t_{i k}\right)=\beta_0 \int_0^{t_{i k}} h\left(S_i(\tau) ; b\right) \mathrm{d} \tau+\sigma_B B\left(t_{i k}\right) \approx \beta_0 \sum_{j=1}^{t_{i k}} h\left(S_{i j} ; b\right)+\sigma_B B\left(t_{i k}\right)
-$$ 且有 $$
-\begin{gathered}
-E\left[X_i\left(t_{i k}\right)\right]=\beta_0 \nu_{i k} \\
-\operatorname{Cov}\left[X_i\left(t_{i k_1}\right), X_i\left(t_{i i_2}\right)\right]=\sigma_B^2 \cdot \min \left\{t_{i k_1}, t_{i k_2}\right\}
-\end{gathered}
-$$ 如果考虑退化增量 $\boldsymbol{Y}_i=\left(Y_i\left(t_{i 1}\right), \cdots, Y_i\left(t_{i m}\right)\right)$, 其中 $$
-Y_i\left(t_{i k}\right)=X_i\left(t_{i k}\right)-X_i\left(t_{i, k-1}\right), \quad k=1,2, \cdots, m
-$$ 记 $\Delta t_{i k}=t_{i k}-t_{i, k-1}, \Delta \nu_{i k}=\nu_{i k}-\nu_{i, k-1}$ 。容易知道 $\boldsymbol{Y}_i \sim N\left(\mu_i, \Sigma_i\right)$, 其中 $$
-\mu_i=\beta_0 \Delta \nu_i, \Sigma_i=\sigma_B^2 \cdot \operatorname{diag}\left(\Delta t_i\right)
-$$
+<!-- 恒定应力加速退化试验是目前应用最广、研究最多的, 这里考虑由恒定应力加速退化试验得到的加速退化数据。 -->
 
-其中 $$
-\Delta \boldsymbol{\nu}_i=\left(\Delta \nu_{i 1}, \Delta \nu_{i 2}, \cdots, \Delta \nu_{i m}\right)^{\mathrm{T}}, \quad \Delta t_i=\left(\Delta t_{i 1}, \Delta t_{i 2}, \cdots, \Delta t_{i m}\right)^{\mathrm{T}}
-$$ 设退化试验数据为 $\boldsymbol{y}_i, i=1,2, \cdots, n$, 则似然函数为 $$
-L(\boldsymbol{\theta})=\prod_{i=1}^n \frac{1}{(2 \pi)^{\frac{m}{2}} \sqrt{\left|\Sigma_i\right|}} \exp \left\{-\frac{1}{2}\left(\boldsymbol{y}_i-\beta_0 \boldsymbol{\nu}_i\right)^{\mathrm{T}} \boldsymbol{\Sigma}_i^{-1}\left(\boldsymbol{y}_i-\beta_0 \boldsymbol{\nu}_i\right)\right\}
-$$ 对数似然函数为 $$
-l(\boldsymbol{\theta})=\text { Const }-n m \ln \sigma_B-\frac{1}{2 \sigma_B^2} \sum_{i=1}^n \sum_{j=1}^m \frac{\left(y_{i j}-\beta_0 \Delta \nu_{i j}\right)^2}{\Delta t_{i j}}
-$$ 取对数似然函数关 $\sigma_B$ 和 $\beta_0$ 的一阶偏导数,得到 $$
-\frac{\partial}{\partial \sigma_B} l(\boldsymbol{\theta})=-n m \frac{1}{\sigma_B}+\frac{1}{\sigma_B^3} \sum_{i=1}^n \sum_{j=1}^m \frac{\left(y_{i j}-\beta_0 \Delta \nu_{i j}\right)^2}{\Delta t_{i j}}
-$$ 与 $$
-\frac{\partial l(\boldsymbol{\theta})}{\partial \beta_0}=\frac{1}{\sigma_B^2} \sum_{i=1}^n \sum_{j=1}^m \frac{\Delta \nu_{i j}\left(y_{i j}-\beta_0 \Delta \nu_{i j}\right)}{\Delta t_{i j}}
-$$ 这样, 对特定的 $\sigma_B$ 和 $\beta_0$, 置这两个导数为 0 , 得到 将其代人对数似然函数, 得到截面对数似然函数如下: $$
-l(b)=\text { Const }-n m \ln \hat{\sigma}_B-\frac{1}{2 \hat{\sigma}_B^2} \sum_{i=1}^n \sum_{j=1}^m \frac{\left(y_{i j}-\hat{\beta}_0 \Delta \nu_{i j}\right)^2}{\Delta t_{i j}}
-$$ 通过搜索得到 $b$ 的极大似然估计 $\hat{b}$, 并将其代人式 (3.52) 或式 (3.53), 就得到 $\sigma_B$ 和 $\beta_0$ 的极大似然估计。
+<!-- 设产品在 $S_0, S_1, \cdots, S_s$ 共 $s+1$ 个应力下进行退化试验, 其中应力 $S_0$ 为正常工作应 力。应力 $S_i$ 下共得到 $n_i$ 个产品的性能退化数据, 其中对产品 $j$, 初始时刻 $t_{i j 0}$ 的退化量 为 $X_{i j 0}=0$, 分别在时刻 $t_{i j 1}, \cdots, t_{i j m_{i j}}$ 测量其性能退化量 $X_{i j 1}, \cdots, X_{i j m_{i j}}$, 其中 $i=0,1, \cdots, s, j=$ $1,2, \cdots, n_i$ 记 $\Delta t_{i j k}=t_{i j k}-t_{i j(k-1)}, \Delta X_{i j k}=X_{i j k}-X_{i j(k-1)}$, 其中 $k=1,2, \cdots, m_{i j}$ 。由各应力下 的退化数据 $\left\{\Delta x_{i j k}\right\}$ 得到模型参数的似然函数为 $$ -->
 
-### 3.3 含随机效应情形
+<!-- L\left(\boldsymbol{\theta}_\mu, \boldsymbol{\theta}_\sigma\right)=\prod_{i=0}^3 \prod_{j=1}^{n_i} \prod_{k=1}^{m_{i j}} \frac{1}{\sqrt{2 \pi \sigma^2\left(S_i\right) \Delta t_{i j k}}} \exp \left[-\frac{\left(\Delta x_{i j k}-\mu\left(S_i\right) \Delta t_{i j k}\right)^2}{2 \sigma^2\left(S_i\right) \Delta t_{i j k}}\right] -->
 
-#### 3.3.1 二阶段的极大似然方法
+<!-- $$ -->
 
-考虑漂移参数和扩散参数服从正态 - 逆 Gamma 分布的情形, 利用 $n$ 个样品的退化 试验数据对随机效应的分布参数 $\nu 、 \eta 、 \alpha 、 \beta$ 进行估计。这里采用两阶段法, 即首先估计 个体产品的固定效应退化过程的参数, 再利用估计的参数值来得到随机效应分布参数 的估计。
+<!-- 则参数 $\boldsymbol{\theta}_\mu 、 \boldsymbol{\theta}_\sigma$ 的极大似然估计 $\hat{\boldsymbol{\theta}}_\mu 、 \hat{\boldsymbol{\theta}}_\sigma$ 可以采用数值方法求式 (3.49) 的极大值得到。则 常应力 $S_0$ 下参数 $\mu 、 \sigma^2$ 为 $$ -->
 
-对产品 $i$, 分别在时刻 $t_{i 0}=0, t_{i 1}, t_{i 2}, \cdots, t_{i m_i}$ 对其进行 $m_i+1$ 次测量, $i=1,2, \cdots, n$, 得 到的测量数据为 $x_{i j}$ 。记 $\Delta x_{i j}=x_{i j}-x_{i, j-1}$, 即 $\Delta x_{i j}$ 为产品 $i$ 在 $t_{i j-1}$ 到 $t_{i j}$ 之间的退化量增量, 由式 (3.41), 给定试验数据 $\Delta x_{i j}$ 的情况下, 样品 $i$ 的退化过程模型参数 $\mu_i, \sigma_i^2$ 的极大似然估计为 $$
-\hat{\mu}_i=\frac{X_{i m_i}}{t_{i m_i}}, \hat{\sigma}_i^2=\frac{1}{m_i}\left[\sum_{j=1}^{m_i} \frac{\left(\Delta X_{i j}\right)^2}{\Delta t_{i j}}-\frac{X_{i m_i}^2}{t_{i m_i}}\right]
-$$ 式中 : $\Delta t_{i j}=t_{i j}-t_{i(j-1)}, j=1,2, \cdots, m_i$ 。
+<!-- \mu=\mu\left(S_0 ; \hat{\boldsymbol{\theta}}_\mu\right), \sigma^2=\sigma^2\left(S_0 ; \hat{\boldsymbol{\theta}}_\sigma\right) -->
 
-由式 (3.56) 得到各产品的退化过程参数的估计 $\hat{\mu}_i 、 \hat{\sigma}_i^2$ 后, 可以拟合得到 $\mu$ 和 $D$ 的 分布参数。令 $\hat{D}_i=\hat{\sigma}_i^2$, 由于 $D^{-1}$ 服从参数为 $(\alpha, \beta)$ 的 $\mathrm{Gamma}$ 分布, 则根据极大似然估 计, $D$ 的分布参数 $\alpha \sqrt{ } \beta$ 可以通过求解下面的方程组得到: $$
-\left\{\begin{array}{l}
-\ln \beta-\psi(\beta)=\ln \frac{1}{n} \sum_{i=1}^n \frac{1}{\hat{D}_i}-\frac{1}{n} \ln \left(\prod_{i=1}^n \frac{1}{\hat{D}_i}\right) \\
-\alpha=\frac{n \beta}{\sum_{i=1}^n \hat{D}_i^{-1}}
-\end{array}\right.
-$$ 式中: $\psi(x)=\frac{\mathrm{d} \ln \Gamma(x)}{\mathrm{d} x}=\Gamma(x) / \Gamma^{\prime}(x)$ 为 Digamma 函数, 文献 $[47]$ 给出了其准确计算方法。
+<!-- $$ 产品可靠度点估计可由式 (3.42)得到。 -->
 
-由于 $\mu \sim N(\nu, \eta D)$, 对单元 $i$, 近似认为参数 $\nu 、 \eta$ 的似然函数为 $$
-l\left(\nu, \eta \mid \hat{\mu}_i, \hat{D}_i\right)=\frac{1}{\sqrt{2 \pi \eta \hat{D}_i}} \exp \left(-\frac{\left(\hat{\mu}_i-\nu\right)^2}{2 \eta \hat{D}_i}\right)
-$$ 于是总的似然函数为 $$
-l(\nu, \eta)=-\frac{n}{2} \ln 2 \pi-\frac{1}{2} \sum_{i=1}^n \hat{D}_i-\frac{n}{2} \ln \eta-\frac{1}{2 \eta}\left(\sum_{i=1}^n \frac{\hat{\mu}_i^2}{\hat{D}_i}-2 v \sum_{i=1}^n \frac{\hat{\mu}_i}{\hat{D}_i}+v^2 \sum_{i=1}^n \frac{1}{\hat{D}_i}\right)
-$$ 由极大似然方法得到 $$
-\left\{\begin{array}{l}
--\frac{1}{\eta}\left(-\sum_{i=1}^n \frac{\hat{\mu}_i}{\hat{D}_i}+\mu \sum_{i=1}^n \frac{1}{\hat{D}_i}\right)=0 \\
--\frac{n}{2 \eta}+\frac{1}{2 \eta^2}\left(\sum_{i=1}^n \frac{\hat{\mu}_i^2}{\hat{D}_i}-2 v \sum_{i=1}^n \frac{\hat{\mu}_i}{\hat{D}_i}+v^2 \sum_{i=1}^n \frac{1}{\hat{D}_i}\right)=0
-\end{array}\right.
-$$ 解上面的方程组得到 $$
-\left\{\begin{array}{l}
-\hat{\nu}=\sum_{i=1}^n \frac{\hat{\mu}_i}{\hat{D}_i} / \sum_{i=1}^n \frac{1}{\hat{D}_i} \\
-\hat{\eta}=\frac{1}{n}\left(\sum_{i=1}^n \frac{\hat{\mu}_i^2}{\hat{D}_i}-\left(\sum_{i=1}^n \frac{\hat{\mu}_i}{\hat{D}_i}\right)^2 / \sum_{i=1}^n \frac{1}{\hat{D}_i}\right)
-\end{array}\right.
-$$
+<!-- **2. 动态环境情形** -->
 
-#### 3.3.2 客观贝叶斯方法
+<!-- 与基于失效的可靠性建模方法相比, 退化过程模型的优点在于可以直接描述应力 对产品退化过程 (如退化速率) 的影响, 为解释产品失效过程、利用各种可能的数据提 供了可能。下面考虑动态环境下的参数估计问题。设动态环境下的应力过程为 $\{S$ $(t), t \geqslant 0\}$, 并且假设应力对退化速率的影响函数为 $\beta_0 \cdot h(S(t) ; b)$, 其中 $\beta_0$ 是基准应 力下的退化速率, 以 $b$ 为参数的函数 $h(S(t) ; b)$ 表示应力的影响, $b$ 是待估参数。认为 应力对退化速率的影响是立即发生的, 即没有时间延迟, 并且退化符合累计损伤规律, 则可知时刻 $t$ 产品退化量取值为 $$ -->
 
+<!-- X(t \mid T(\tau), 0 \leqslant \tau \leqslant t)=\beta_0 \int_0^t h(S(\tau) ; b) \mathrm{d} \tau+\sigma_B B(t) -->
 
+<!-- $$ 式中: $\{S(\tau), 0 \leqslant \tau \leqslant t\}$ 为 $[0, \tau]$ 内的应力; $\{B(t), t \geqslant 0\}$ 为标准 Wiener 过程; 模型待估 参数为 $$ -->
 
+<!-- \boldsymbol{\theta}=\left(\beta_0, b, \sigma_B^2\right) -->
 
-### 3.4 有测量误差情形
+<!-- $$ -->
 
-假设 $Y(t)$ 和 $X(t)$ 分别表示观测的退化过程和真实退化过程在时刻 $t, t \geqslant 0$ 的退化水平, $X(t)$ 和 $Y(t)$ 可用下面的模型描述: $$
-\left\{\begin{array}{l}
-X(t)=\beta \cdot t+\sigma_B \cdot B(t) \\
-Y(t)=X(t)+\sigma_R \cdot \varepsilon(t)
-\end{array}\right.
-$$ 式中: $\beta$ 对个体产品是恒定不变的退化强度即退化速率: 假设不同个体平均退化速率存 在差异, 并可用正态分布描述, 即 $\beta \sim N\left(\mu_\beta, \sigma_\beta^2\right) ; B(t)$ 是标准 Wiener 过程, $\sigma_B$ 为扩散参 数; $\varepsilon(t)$ 表示测量误差, 是均值为 0 、方差为 1 的 Gaussian 白噪声。
+<!-- 设有 $n$ 个产品进行退化试验, 不失一般性, 考虑规则型连续测量情形。对产品 $i$, 设 时刻 $t_{i k}$ 观测到的退化量为 $X_i\left(t_{i k}\right), k=0,1,2, \cdots, m\left(t_{i 0}=0\right)$; 对环境进行连续观测, 时刻 $j$ 观测到应力取值为 $S_{i j}, j=1,2, \cdots$ 。需要注意的是,退化量的测量间隔与环境监测时间 间隔可能是不同的,这里假设后者的监测更频繁。不失一般性, 假设环境监测间隔为 1 个时间单位, 则 $t_{i k}-t_{i, k-1} \geqslant 1, k=1,2, \cdots$ 。下面基于动态环境下的退化试验数据, 给出 模型参数的**极大似然估计**方法。 -->
 
-因此, 式 (3.61) 模型共有 4 个待估参数, 即 $$
-\boldsymbol{\theta}=\left(\mu_\beta, \sigma_\beta, \sigma_B^2, \sigma_R^2\right)^{\mathrm{T}}
-$$
+<!-- 根据模型式 $(3.51)$, 记 $\nu_{i k}=\sum_{j=1}^{t_{i k}} h\left(S_{i j} ; b\right)$, 对产品 $i$ 以及时刻 $t_{i k}$ 近似的有 $$ -->
 
-假设对 $n$ 个产品进行退化试验。对单元 $i(i=1, \cdots, n)$ 进行 $m_i$ 次测量, 时刻 $t_{i j}$ 的测量值为 $$
-Y_i\left(t_{i j}\right)=X_i\left(t_{i j}\right)+\sigma_e \varepsilon\left(t_{i j}\right)=\beta_i t_{i j}+\sigma_B B\left(t_{i j}\right)+\sigma_R \varepsilon\left(t_{i j}\right), j=1, \cdots, m_i
-$$ 式中 : $\beta_i$ 是单元 $i$ 的平均退化速率, 对单元 $i$ 的所有测量是恒定不变的。
+<!-- X_i\left(t_{i k}\right)=\beta_0 \int_0^{t_{i k}} h\left(S_i(\tau) ; b\right) \mathrm{d} \tau+\sigma_B B\left(t_{i k}\right) \approx \beta_0 \sum_{j=1}^{t_{i k}} h\left(S_{i j} ; b\right)+\sigma_B B\left(t_{i k}\right) -->
 
-定义时间间隔 $\Delta t_{i j}=t_{i j}-t_{i j-1}$, 观测的退化增量为 $\Delta Y_{i j}=Y_i\left(t_{i j}\right)-Y_i\left(t_{i j-1}\right), j=1$, $2, \cdots, m_i$; 根据 Wiener 过程定义, $t_{i 0}=0, Y_i\left(t_{i 0}\right)=0$ 。为叙述方便, 令 $$
-\Delta t_i=\left(\Delta t_{i 1}, \cdots, \Delta t_{i m_i}\right)^{\mathrm{T}}, \Delta \boldsymbol{Y}_i=\left(\Delta Y_{i 1}, \cdots, \Delta Y_{i m_i}\right)^{\mathrm{T}}
-$$
+<!-- $$ 且有 $$ -->
 
-根据 Wiener 过程的独立增量性质, 得到 $$
-\begin{gathered}
-E\left[\Delta \boldsymbol{Y}_i\right]=\mu_\beta \Delta \boldsymbol{t}_i \\
-\operatorname{Cov}\left(\Delta \boldsymbol{Y}_i\right) \triangleq \Sigma_i=\sigma_\beta^2 \Delta \boldsymbol{t}_i \Delta t_i^{\mathrm{T}}+\sigma_B^2 \boldsymbol{K}_i+\sigma_R^2 \boldsymbol{P}_i \\
-\end{gathered}
-$$ 其中， $$
-\boldsymbol{K}_i=\operatorname{diag}\left(\Delta \boldsymbol{t}_i\right), \boldsymbol{P}_i=\left[\begin{array}{ccccc}
-2 & -1 & 0 & \cdots & 0 \\
--1 & 2 & -1 & \cdots & 0 \\
-0 & -1 & 2 & \cdots & 0 \\
-\vdots & \vdots & \vdots & \ddots & \vdots \\
-0 & 0 & \cdots & -1 & 2
-\end{array}\right]
-$$
+<!-- \begin{gathered} -->
 
-设退化数据为 $\Delta \boldsymbol{Y}_i=\Delta \boldsymbol{y}_i, i=1,2, \cdots, n$, 则参数 $\boldsymbol{\theta}$ 的似然函数为 $$
-L(\boldsymbol{\theta})=\prod_{i=1}^n \frac{1}{(2 \pi)^{\frac{m_i}{2}} \sqrt{\left|\Sigma_i\right|}} \exp \left\{-\frac{1}{2}\left(\Delta \boldsymbol{y}_i-\mu_\beta \Delta \boldsymbol{t}_i\right)^{\mathrm{T}} \Sigma_i^{-1}\left(\Delta \boldsymbol{y}_i-\mu_\beta \Delta \boldsymbol{t}_i\right)\right\}
-$$ 令 $\Sigma_i=\sigma_\beta^2 \Delta t_i \Delta t_i^{\mathrm{T}}+\boldsymbol{\Omega}_i$, 其中 $\boldsymbol{\Omega}_i=\sigma_B^2 \boldsymbol{K}_i+\sigma_R^2 \boldsymbol{P}_i$ 定义 $$
-\phi_i=\Delta t_i^{\mathrm{T}} \boldsymbol{\Omega}_i^{-1} \Delta \boldsymbol{y}_i, \rho_i=\Delta t_i^{\mathrm{T}} \boldsymbol{\Omega}_i^{-1} \Delta t_i
-$$ 取对数似然函数关于 $\mu_\beta$ 和 $\sigma_\beta^2$ 的一阶偏导数, 并利用下面的公式 $$
-\begin{aligned}
-\left|\boldsymbol{\Sigma}_i\right| &=\left|\boldsymbol{\Omega}_i\right|\left(1+\sigma_\beta^2 \Delta t_i^{\mathrm{T}} \boldsymbol{\Omega}_i^{-1} \Delta \boldsymbol{t}_i\right)=\left(\boldsymbol{\Omega}_i \mid\left(1+\sigma_\beta^2 \rho_i\right)\right.\\
-\boldsymbol{\Sigma}_i^{-1} &=\boldsymbol{\Omega}_i^{-1}-\frac{\sigma_\beta^2}{1+\sigma_\beta^2 \rho_i} \boldsymbol{\Omega}_i^{-1} \Delta \boldsymbol{t}_i \Delta \boldsymbol{t}_i^{\mathrm{T}} \boldsymbol{\Omega}_i^{-1}(\text { Woodbury 公式 })
-\end{aligned}
-$$
+<!-- E\left[X_i\left(t_{i k}\right)\right]=\beta_0 \nu_{i k} \\ -->
 
-得到 $$
-\frac{\partial}{\partial \mu_\beta} l(\boldsymbol{\theta})=\sum_{i=1}^n \frac{\phi_i-\mu_\beta \rho_i}{1+\sigma_\beta^2 \rho_i}
-$$ 和 $$
-\frac{\partial}{\partial \sigma_\beta^2} l(\boldsymbol{\theta})=\sum_{i=1}^n\left(\frac{\phi_i-\mu_\beta \rho_i}{1+\sigma_\beta^2 \rho_i}\right)^2-\sum_{i=1}^n \frac{\rho_i}{1+\sigma_\beta^2 \rho_i}
-$$ 于是, 对特定的 $\left(\sigma_B, \sigma_R\right)$ 取值, 置式 (3.62) 和式 (3.63) 等于 0 , 得到 $\mu_\beta$ 和 $\sigma_\beta$ 的如下限制极大似然估计: $$
-\left\{\begin{array}{l}
-\hat{\mu}_\beta=\sum_{i=1}^n \frac{\phi_i}{1+\hat{\sigma}_\beta^2 \rho_i} / \sum_{i=1}^n \frac{\rho_i}{1+\hat{\sigma}_\beta^2 \rho_i} \\
-\sum_{i=1}^n\left(\frac{\phi_i-\hat{\mu}_\beta \rho_i}{1+\hat{\sigma}_\beta^2 \rho_i}\right)^2-\sum_{i=1}^n \frac{\rho_i}{1+\hat{\sigma}_\beta^2 \rho_i}=0
-\end{array}\right.
-$$ 将上式代人 $\theta$ 的对数似然函数,则得到如下的截面似然函数: $$
-\begin{aligned}
-l\left(\sigma_B, \sigma_R\right)=&-\frac{1}{2} \sum_{i=1}^n m_i \ln (2 \pi)-\frac{1}{2} \sum_{i=1}^n \ln \left|\boldsymbol{\Omega}_i\right|-\frac{1}{2} \sum_{i=1}^n \ln \left(1+\hat{\sigma}_\beta^2 \rho_i\right) \\
-&-\frac{1}{2} \sum_{i=1}^n\left(\Delta \boldsymbol{y}_i-\hat{\mu}_\beta \Delta \boldsymbol{t}_i\right)^{\mathrm{T}} \boldsymbol{\Omega}_i^{-1}\left(\Delta \boldsymbol{y}_i-\hat{\mu}_\beta \Delta \boldsymbol{t}_i\right) \\
-&+\frac{1}{2} \sum_{i=1}^n \frac{\hat{\sigma}_\beta^2\left(\phi_i-\hat{\mu}_\beta \rho_i\right)^2}{1+\hat{\sigma}_\beta^2 \rho_i}
-\end{aligned}
-$$ 通过最大化上述截面似然函数, 得到 $\sigma_B$ 和 $\sigma_R$ 的极大似然估计 $\left(\hat{\sigma}_B, \hat{\sigma}_R\right)$, 这可通过 2 维搜索算法实现。最后将 $\left(\hat{\sigma}_B, \hat{\sigma}_R\right)$ 代人式 (3.64), 得到 $\mu_\beta$ 和 $\sigma_\beta$ 的极大似然估计。
+<!-- \operatorname{Cov}\left[X_i\left(t_{i k_1}\right), X_i\left(t_{i i_2}\right)\right]=\sigma_B^2 \cdot \min \left\{t_{i k_1}, t_{i k_2}\right\} -->
 
-当所有观测时间相同时, 诸 $\rho_i$ 相同, 记为 $\rho$, 可以得到 $\hat{\mu}_\beta$ 和 $\hat{\sigma}_\beta^2$ 的解析形式, 即 $$
-\begin{gathered}
-\hat{\mu}_\beta=\frac{1}{n \rho} \sum_{i=1}^n \phi_i=\frac{1}{n} \sum_{i=1}^n \frac{\phi_i}{\rho} \triangleq \frac{1}{n} \sum_{i=1}^n \hat{\mu}_{\beta, i} \\
-\hat{\sigma}_\beta^2=\frac{1}{n \rho^2} \sum_{i=1}^n\left(\phi_i-\hat{\mu}_\beta \rho\right)^2-\frac{1}{\rho}=\frac{1}{n} \sum_{i=1}^n\left(\hat{\mu}_{\beta, i}-\hat{\mu}_\beta\right)^2-\frac{1}{\rho}
-\end{gathered}
-$$ 容易看出, $\hat{\mu}_{\beta, i}$ 实际上是单元 $i$ 的退化速率的加权最小二乘估计, $\hat{\sigma}_\beta^2$ 的第一项是估 计的退化速率的方差。此时, 可以得到截面似然函数的比较简单的形式, 如下所示: $$
-\begin{aligned}
-l\left(\sigma_B, \sigma_R\right)=&-\frac{n m}{2} \ln (2 \pi)-\frac{n}{2}-\frac{n}{2} \ln |\boldsymbol{\Omega}| \\
-&-\frac{1}{2}\left\{\sum_{i=1}^n \Delta \boldsymbol{y}_i^{\mathrm{T}} \boldsymbol{\Omega}^{-1} \Delta \boldsymbol{y}_i-\frac{1}{\rho} \sum_{i=1}^n \phi_i^2\right\} \\
-&-\frac{n}{2} \ln \left(\frac{1}{n \rho} \sum_{i=1}^n \phi_i^2-\frac{1}{n^2 \rho}\left(\sum_{i=1}^n \phi_i\right)^2\right)
-\end{aligned}
-$$
+<!-- \end{gathered} -->
 
-### 3.3 案例分析
+<!-- $$ 如果考虑退化增量 $\boldsymbol{Y}_i=\left(Y_i\left(t_{i 1}\right), \cdots, Y_i\left(t_{i m}\right)\right)$, 其中 $$ -->
 
-#### 3.3.1 NASA 锂电池数据
+<!-- Y_i\left(t_{i k}\right)=X_i\left(t_{i k}\right)-X_i\left(t_{i, k-1}\right), \quad k=1,2, \cdots, m -->
+
+<!-- $$ 记 $\Delta t_{i k}=t_{i k}-t_{i, k-1}, \Delta \nu_{i k}=\nu_{i k}-\nu_{i, k-1}$ 。容易知道 $\boldsymbol{Y}_i \sim N\left(\mu_i, \Sigma_i\right)$, 其中 $$ -->
+
+<!-- \mu_i=\beta_0 \Delta \nu_i, \Sigma_i=\sigma_B^2 \cdot \operatorname{diag}\left(\Delta t_i\right) -->
+
+<!-- $$ -->
+
+<!-- 其中 $$ -->
+
+<!-- \Delta \boldsymbol{\nu}_i=\left(\Delta \nu_{i 1}, \Delta \nu_{i 2}, \cdots, \Delta \nu_{i m}\right)^{\mathrm{T}}, \quad \Delta t_i=\left(\Delta t_{i 1}, \Delta t_{i 2}, \cdots, \Delta t_{i m}\right)^{\mathrm{T}} -->
+
+<!-- $$ 设退化试验数据为 $\boldsymbol{y}_i, i=1,2, \cdots, n$, 则似然函数为 $$ -->
+
+<!-- L(\boldsymbol{\theta})=\prod_{i=1}^n \frac{1}{(2 \pi)^{\frac{m}{2}} \sqrt{\left|\Sigma_i\right|}} \exp \left\{-\frac{1}{2}\left(\boldsymbol{y}_i-\beta_0 \boldsymbol{\nu}_i\right)^{\mathrm{T}} \boldsymbol{\Sigma}_i^{-1}\left(\boldsymbol{y}_i-\beta_0 \boldsymbol{\nu}_i\right)\right\} -->
+
+<!-- $$ 对数似然函数为 $$ -->
+
+<!-- l(\boldsymbol{\theta})=\text { Const }-n m \ln \sigma_B-\frac{1}{2 \sigma_B^2} \sum_{i=1}^n \sum_{j=1}^m \frac{\left(y_{i j}-\beta_0 \Delta \nu_{i j}\right)^2}{\Delta t_{i j}} -->
+
+<!-- $$ 取对数似然函数关 $\sigma_B$ 和 $\beta_0$ 的一阶偏导数,得到 $$ -->
+
+<!-- \frac{\partial}{\partial \sigma_B} l(\boldsymbol{\theta})=-n m \frac{1}{\sigma_B}+\frac{1}{\sigma_B^3} \sum_{i=1}^n \sum_{j=1}^m \frac{\left(y_{i j}-\beta_0 \Delta \nu_{i j}\right)^2}{\Delta t_{i j}} -->
+
+<!-- $$ 与 $$ -->
+
+<!-- \frac{\partial l(\boldsymbol{\theta})}{\partial \beta_0}=\frac{1}{\sigma_B^2} \sum_{i=1}^n \sum_{j=1}^m \frac{\Delta \nu_{i j}\left(y_{i j}-\beta_0 \Delta \nu_{i j}\right)}{\Delta t_{i j}} -->
+
+<!-- $$ 这样, 对特定的 $\sigma_B$ 和 $\beta_0$, 置这两个导数为 0 , 得到 将其代人对数似然函数, 得到截面对数似然函数如下: $$ -->
+
+<!-- l(b)=\text { Const }-n m \ln \hat{\sigma}_B-\frac{1}{2 \hat{\sigma}_B^2} \sum_{i=1}^n \sum_{j=1}^m \frac{\left(y_{i j}-\hat{\beta}_0 \Delta \nu_{i j}\right)^2}{\Delta t_{i j}} -->
+
+<!-- $$ 通过搜索得到 $b$ 的极大似然估计 $\hat{b}$, 并将其代人式 (3.52) 或式 (3.53), 就得到 $\sigma_B$ 和 $\beta_0$ 的极大似然估计。 -->
+
+<!-- ### 3.3 含随机效应情形 -->
+
+<!-- #### 3.3.1 二阶段的极大似然方法 -->
+
+<!-- 考虑漂移参数和扩散参数服从正态 - 逆 Gamma 分布的情形, 利用 $n$ 个样品的退化 试验数据对随机效应的分布参数 $\nu 、 \eta 、 \alpha 、 \beta$ 进行估计。这里采用两阶段法, 即首先估计 个体产品的固定效应退化过程的参数, 再利用估计的参数值来得到随机效应分布参数 的估计。 -->
+
+<!-- 对产品 $i$, 分别在时刻 $t_{i 0}=0, t_{i 1}, t_{i 2}, \cdots, t_{i m_i}$ 对其进行 $m_i+1$ 次测量, $i=1,2, \cdots, n$, 得 到的测量数据为 $x_{i j}$ 。记 $\Delta x_{i j}=x_{i j}-x_{i, j-1}$, 即 $\Delta x_{i j}$ 为产品 $i$ 在 $t_{i j-1}$ 到 $t_{i j}$ 之间的退化量增量, 由式 (3.41), 给定试验数据 $\Delta x_{i j}$ 的情况下, 样品 $i$ 的退化过程模型参数 $\mu_i, \sigma_i^2$ 的极大似然估计为 $$ -->
+
+<!-- \hat{\mu}_i=\frac{X_{i m_i}}{t_{i m_i}}, \hat{\sigma}_i^2=\frac{1}{m_i}\left[\sum_{j=1}^{m_i} \frac{\left(\Delta X_{i j}\right)^2}{\Delta t_{i j}}-\frac{X_{i m_i}^2}{t_{i m_i}}\right] -->
+
+<!-- $$ 式中 : $\Delta t_{i j}=t_{i j}-t_{i(j-1)}, j=1,2, \cdots, m_i$ 。 -->
+
+<!-- 由式 (3.56) 得到各产品的退化过程参数的估计 $\hat{\mu}_i 、 \hat{\sigma}_i^2$ 后, 可以拟合得到 $\mu$ 和 $D$ 的 分布参数。令 $\hat{D}_i=\hat{\sigma}_i^2$, 由于 $D^{-1}$ 服从参数为 $(\alpha, \beta)$ 的 $\mathrm{Gamma}$ 分布, 则根据极大似然估 计, $D$ 的分布参数 $\alpha \sqrt{ } \beta$ 可以通过求解下面的方程组得到: $$ -->
+
+<!-- \left\{\begin{array}{l} -->
+
+<!-- \ln \beta-\psi(\beta)=\ln \frac{1}{n} \sum_{i=1}^n \frac{1}{\hat{D}_i}-\frac{1}{n} \ln \left(\prod_{i=1}^n \frac{1}{\hat{D}_i}\right) \\ -->
+
+<!-- \alpha=\frac{n \beta}{\sum_{i=1}^n \hat{D}_i^{-1}} -->
+
+<!-- \end{array}\right. -->
+
+<!-- $$ 式中: $\psi(x)=\frac{\mathrm{d} \ln \Gamma(x)}{\mathrm{d} x}=\Gamma(x) / \Gamma^{\prime}(x)$ 为 Digamma 函数, 文献 $[47]$ 给出了其准确计算方法。 -->
+
+<!-- 由于 $\mu \sim N(\nu, \eta D)$, 对单元 $i$, 近似认为参数 $\nu 、 \eta$ 的似然函数为 $$ -->
+
+<!-- l\left(\nu, \eta \mid \hat{\mu}_i, \hat{D}_i\right)=\frac{1}{\sqrt{2 \pi \eta \hat{D}_i}} \exp \left(-\frac{\left(\hat{\mu}_i-\nu\right)^2}{2 \eta \hat{D}_i}\right) -->
+
+<!-- $$ 于是总的似然函数为 $$ -->
+
+<!-- l(\nu, \eta)=-\frac{n}{2} \ln 2 \pi-\frac{1}{2} \sum_{i=1}^n \hat{D}_i-\frac{n}{2} \ln \eta-\frac{1}{2 \eta}\left(\sum_{i=1}^n \frac{\hat{\mu}_i^2}{\hat{D}_i}-2 v \sum_{i=1}^n \frac{\hat{\mu}_i}{\hat{D}_i}+v^2 \sum_{i=1}^n \frac{1}{\hat{D}_i}\right) -->
+
+<!-- $$ 由极大似然方法得到 $$ -->
+
+<!-- \left\{\begin{array}{l} -->
+
+<!-- -\frac{1}{\eta}\left(-\sum_{i=1}^n \frac{\hat{\mu}_i}{\hat{D}_i}+\mu \sum_{i=1}^n \frac{1}{\hat{D}_i}\right)=0 \\ -->
+
+<!-- -\frac{n}{2 \eta}+\frac{1}{2 \eta^2}\left(\sum_{i=1}^n \frac{\hat{\mu}_i^2}{\hat{D}_i}-2 v \sum_{i=1}^n \frac{\hat{\mu}_i}{\hat{D}_i}+v^2 \sum_{i=1}^n \frac{1}{\hat{D}_i}\right)=0 -->
+
+<!-- \end{array}\right. -->
+
+<!-- $$ 解上面的方程组得到 $$ -->
+
+<!-- \left\{\begin{array}{l} -->
+
+<!-- \hat{\nu}=\sum_{i=1}^n \frac{\hat{\mu}_i}{\hat{D}_i} / \sum_{i=1}^n \frac{1}{\hat{D}_i} \\ -->
+
+<!-- \hat{\eta}=\frac{1}{n}\left(\sum_{i=1}^n \frac{\hat{\mu}_i^2}{\hat{D}_i}-\left(\sum_{i=1}^n \frac{\hat{\mu}_i}{\hat{D}_i}\right)^2 / \sum_{i=1}^n \frac{1}{\hat{D}_i}\right) -->
+
+<!-- \end{array}\right. -->
+
+<!-- $$ -->
+
+<!-- #### 3.3.2 客观贝叶斯方法 -->
+
+<!-- ### 3.4 有测量误差情形 -->
+
+<!-- 假设 $Y(t)$ 和 $X(t)$ 分别表示观测的退化过程和真实退化过程在时刻 $t, t \geqslant 0$ 的退化水平, $X(t)$ 和 $Y(t)$ 可用下面的模型描述: $$ -->
+
+<!-- \left\{\begin{array}{l} -->
+
+<!-- X(t)=\beta \cdot t+\sigma_B \cdot B(t) \\ -->
+
+<!-- Y(t)=X(t)+\sigma_R \cdot \varepsilon(t) -->
+
+<!-- \end{array}\right. -->
+
+<!-- $$ 式中: $\beta$ 对个体产品是恒定不变的退化强度即退化速率: 假设不同个体平均退化速率存 在差异, 并可用正态分布描述, 即 $\beta \sim N\left(\mu_\beta, \sigma_\beta^2\right) ; B(t)$ 是标准 Wiener 过程, $\sigma_B$ 为扩散参 数; $\varepsilon(t)$ 表示测量误差, 是均值为 0 、方差为 1 的 Gaussian 白噪声。 -->
+
+<!-- 因此, 式 (3.61) 模型共有 4 个待估参数, 即 $$ -->
+
+<!-- \boldsymbol{\theta}=\left(\mu_\beta, \sigma_\beta, \sigma_B^2, \sigma_R^2\right)^{\mathrm{T}} -->
+
+<!-- $$ -->
+
+<!-- 假设对 $n$ 个产品进行退化试验。对单元 $i(i=1, \cdots, n)$ 进行 $m_i$ 次测量, 时刻 $t_{i j}$ 的测量值为 $$ -->
+
+<!-- Y_i\left(t_{i j}\right)=X_i\left(t_{i j}\right)+\sigma_e \varepsilon\left(t_{i j}\right)=\beta_i t_{i j}+\sigma_B B\left(t_{i j}\right)+\sigma_R \varepsilon\left(t_{i j}\right), j=1, \cdots, m_i -->
+
+<!-- $$ 式中 : $\beta_i$ 是单元 $i$ 的平均退化速率, 对单元 $i$ 的所有测量是恒定不变的。 -->
+
+<!-- 定义时间间隔 $\Delta t_{i j}=t_{i j}-t_{i j-1}$, 观测的退化增量为 $\Delta Y_{i j}=Y_i\left(t_{i j}\right)-Y_i\left(t_{i j-1}\right), j=1$, $2, \cdots, m_i$; 根据 Wiener 过程定义, $t_{i 0}=0, Y_i\left(t_{i 0}\right)=0$ 。为叙述方便, 令 $$ -->
+
+<!-- \Delta t_i=\left(\Delta t_{i 1}, \cdots, \Delta t_{i m_i}\right)^{\mathrm{T}}, \Delta \boldsymbol{Y}_i=\left(\Delta Y_{i 1}, \cdots, \Delta Y_{i m_i}\right)^{\mathrm{T}} -->
+
+<!-- $$ -->
+
+<!-- 根据 Wiener 过程的独立增量性质, 得到 $$ -->
+
+<!-- \begin{gathered} -->
+
+<!-- E\left[\Delta \boldsymbol{Y}_i\right]=\mu_\beta \Delta \boldsymbol{t}_i \\ -->
+
+<!-- \operatorname{Cov}\left(\Delta \boldsymbol{Y}_i\right) \triangleq \Sigma_i=\sigma_\beta^2 \Delta \boldsymbol{t}_i \Delta t_i^{\mathrm{T}}+\sigma_B^2 \boldsymbol{K}_i+\sigma_R^2 \boldsymbol{P}_i \\ -->
+
+<!-- \end{gathered} -->
+
+<!-- $$ 其中， $$ -->
+
+<!-- \boldsymbol{K}_i=\operatorname{diag}\left(\Delta \boldsymbol{t}_i\right), \boldsymbol{P}_i=\left[\begin{array}{ccccc} -->
+
+<!-- 2 & -1 & 0 & \cdots & 0 \\ -->
+
+<!-- -1 & 2 & -1 & \cdots & 0 \\ -->
+
+<!-- 0 & -1 & 2 & \cdots & 0 \\ -->
+
+<!-- \vdots & \vdots & \vdots & \ddots & \vdots \\ -->
+
+<!-- 0 & 0 & \cdots & -1 & 2 -->
+
+<!-- \end{array}\right] -->
+
+<!-- $$ -->
+
+<!-- 设退化数据为 $\Delta \boldsymbol{Y}_i=\Delta \boldsymbol{y}_i, i=1,2, \cdots, n$, 则参数 $\boldsymbol{\theta}$ 的似然函数为 $$ -->
+
+<!-- L(\boldsymbol{\theta})=\prod_{i=1}^n \frac{1}{(2 \pi)^{\frac{m_i}{2}} \sqrt{\left|\Sigma_i\right|}} \exp \left\{-\frac{1}{2}\left(\Delta \boldsymbol{y}_i-\mu_\beta \Delta \boldsymbol{t}_i\right)^{\mathrm{T}} \Sigma_i^{-1}\left(\Delta \boldsymbol{y}_i-\mu_\beta \Delta \boldsymbol{t}_i\right)\right\} -->
+
+<!-- $$ 令 $\Sigma_i=\sigma_\beta^2 \Delta t_i \Delta t_i^{\mathrm{T}}+\boldsymbol{\Omega}_i$, 其中 $\boldsymbol{\Omega}_i=\sigma_B^2 \boldsymbol{K}_i+\sigma_R^2 \boldsymbol{P}_i$ 定义 $$ -->
+
+<!-- \phi_i=\Delta t_i^{\mathrm{T}} \boldsymbol{\Omega}_i^{-1} \Delta \boldsymbol{y}_i, \rho_i=\Delta t_i^{\mathrm{T}} \boldsymbol{\Omega}_i^{-1} \Delta t_i -->
+
+<!-- $$ 取对数似然函数关于 $\mu_\beta$ 和 $\sigma_\beta^2$ 的一阶偏导数, 并利用下面的公式 $$ -->
+
+<!-- \begin{aligned} -->
+
+<!-- \left|\boldsymbol{\Sigma}_i\right| &=\left|\boldsymbol{\Omega}_i\right|\left(1+\sigma_\beta^2 \Delta t_i^{\mathrm{T}} \boldsymbol{\Omega}_i^{-1} \Delta \boldsymbol{t}_i\right)=\left(\boldsymbol{\Omega}_i \mid\left(1+\sigma_\beta^2 \rho_i\right)\right.\\ -->
+
+<!-- \boldsymbol{\Sigma}_i^{-1} &=\boldsymbol{\Omega}_i^{-1}-\frac{\sigma_\beta^2}{1+\sigma_\beta^2 \rho_i} \boldsymbol{\Omega}_i^{-1} \Delta \boldsymbol{t}_i \Delta \boldsymbol{t}_i^{\mathrm{T}} \boldsymbol{\Omega}_i^{-1}(\text { Woodbury 公式 }) -->
+
+<!-- \end{aligned} -->
+
+<!-- $$ -->
+
+<!-- 得到 $$ -->
+
+<!-- \frac{\partial}{\partial \mu_\beta} l(\boldsymbol{\theta})=\sum_{i=1}^n \frac{\phi_i-\mu_\beta \rho_i}{1+\sigma_\beta^2 \rho_i} -->
+
+<!-- $$ 和 $$ -->
+
+<!-- \frac{\partial}{\partial \sigma_\beta^2} l(\boldsymbol{\theta})=\sum_{i=1}^n\left(\frac{\phi_i-\mu_\beta \rho_i}{1+\sigma_\beta^2 \rho_i}\right)^2-\sum_{i=1}^n \frac{\rho_i}{1+\sigma_\beta^2 \rho_i} -->
+
+<!-- $$ 于是, 对特定的 $\left(\sigma_B, \sigma_R\right)$ 取值, 置式 (3.62) 和式 (3.63) 等于 0 , 得到 $\mu_\beta$ 和 $\sigma_\beta$ 的如下限制极大似然估计: $$ -->
+
+<!-- \left\{\begin{array}{l} -->
+
+<!-- \hat{\mu}_\beta=\sum_{i=1}^n \frac{\phi_i}{1+\hat{\sigma}_\beta^2 \rho_i} / \sum_{i=1}^n \frac{\rho_i}{1+\hat{\sigma}_\beta^2 \rho_i} \\ -->
+
+<!-- \sum_{i=1}^n\left(\frac{\phi_i-\hat{\mu}_\beta \rho_i}{1+\hat{\sigma}_\beta^2 \rho_i}\right)^2-\sum_{i=1}^n \frac{\rho_i}{1+\hat{\sigma}_\beta^2 \rho_i}=0 -->
+
+<!-- \end{array}\right. -->
+
+<!-- $$ 将上式代人 $\theta$ 的对数似然函数,则得到如下的截面似然函数: $$ -->
+
+<!-- \begin{aligned} -->
+
+<!-- l\left(\sigma_B, \sigma_R\right)=&-\frac{1}{2} \sum_{i=1}^n m_i \ln (2 \pi)-\frac{1}{2} \sum_{i=1}^n \ln \left|\boldsymbol{\Omega}_i\right|-\frac{1}{2} \sum_{i=1}^n \ln \left(1+\hat{\sigma}_\beta^2 \rho_i\right) \\ -->
+
+<!-- &-\frac{1}{2} \sum_{i=1}^n\left(\Delta \boldsymbol{y}_i-\hat{\mu}_\beta \Delta \boldsymbol{t}_i\right)^{\mathrm{T}} \boldsymbol{\Omega}_i^{-1}\left(\Delta \boldsymbol{y}_i-\hat{\mu}_\beta \Delta \boldsymbol{t}_i\right) \\ -->
+
+<!-- &+\frac{1}{2} \sum_{i=1}^n \frac{\hat{\sigma}_\beta^2\left(\phi_i-\hat{\mu}_\beta \rho_i\right)^2}{1+\hat{\sigma}_\beta^2 \rho_i} -->
+
+<!-- \end{aligned} -->
+
+<!-- $$ 通过最大化上述截面似然函数, 得到 $\sigma_B$ 和 $\sigma_R$ 的极大似然估计 $\left(\hat{\sigma}_B, \hat{\sigma}_R\right)$, 这可通过 2 维搜索算法实现。最后将 $\left(\hat{\sigma}_B, \hat{\sigma}_R\right)$ 代人式 (3.64), 得到 $\mu_\beta$ 和 $\sigma_\beta$ 的极大似然估计。 -->
+
+<!-- 当所有观测时间相同时, 诸 $\rho_i$ 相同, 记为 $\rho$, 可以得到 $\hat{\mu}_\beta$ 和 $\hat{\sigma}_\beta^2$ 的解析形式, 即 $$ -->
+
+<!-- \begin{gathered} -->
+
+<!-- \hat{\mu}_\beta=\frac{1}{n \rho} \sum_{i=1}^n \phi_i=\frac{1}{n} \sum_{i=1}^n \frac{\phi_i}{\rho} \triangleq \frac{1}{n} \sum_{i=1}^n \hat{\mu}_{\beta, i} \\ -->
+
+<!-- \hat{\sigma}_\beta^2=\frac{1}{n \rho^2} \sum_{i=1}^n\left(\phi_i-\hat{\mu}_\beta \rho\right)^2-\frac{1}{\rho}=\frac{1}{n} \sum_{i=1}^n\left(\hat{\mu}_{\beta, i}-\hat{\mu}_\beta\right)^2-\frac{1}{\rho} -->
+
+<!-- \end{gathered} -->
+
+<!-- $$ 容易看出, $\hat{\mu}_{\beta, i}$ 实际上是单元 $i$ 的退化速率的加权最小二乘估计, $\hat{\sigma}_\beta^2$ 的第一项是估 计的退化速率的方差。此时, 可以得到截面似然函数的比较简单的形式, 如下所示: $$ -->
+
+<!-- \begin{aligned} -->
+
+<!-- l\left(\sigma_B, \sigma_R\right)=&-\frac{n m}{2} \ln (2 \pi)-\frac{n}{2}-\frac{n}{2} \ln |\boldsymbol{\Omega}| \\ -->
+
+<!-- &-\frac{1}{2}\left\{\sum_{i=1}^n \Delta \boldsymbol{y}_i^{\mathrm{T}} \boldsymbol{\Omega}^{-1} \Delta \boldsymbol{y}_i-\frac{1}{\rho} \sum_{i=1}^n \phi_i^2\right\} \\ -->
+
+<!-- &-\frac{n}{2} \ln \left(\frac{1}{n \rho} \sum_{i=1}^n \phi_i^2-\frac{1}{n^2 \rho}\left(\sum_{i=1}^n \phi_i\right)^2\right) -->
+
+<!-- \end{aligned} -->
+
+<!-- $$ -->
+
+### 3.2 案例分析
+
+#### 3.2.1 NASA 锂电池数据
 
 > 数据来源于[NASA Ames Prognostics Center of Excellence (PCoE)](https://c3.ndc.nasa.gov/dashlink/resources/133/)，但是找不到数据下载。最后是通过 [Github](https://github.com/psanabriaUC/BatteryDatasetImplementation) 获得。
 
@@ -639,7 +835,7 @@ R_re %>% pivot_longer(max_battery[,1],
   labs(x = "Time", y = "Reliability")
 ```
 
-#### 3.3.2 激光器件 Laser 数据集
+#### 3.2.2 激光器件 Laser 数据集
 
 > 数据集来自 Meeker, W. Q. (1998). Statistical Methods for Reliability Data。
 
@@ -704,7 +900,7 @@ R_re %>% pivot_longer(colnames(Laser_new)[-1],
 
 ```
 
-#### 3.3.3 炭膜电阻器 carbon-film resistors
+#### 3.2.3 炭膜电阻器 carbon-film resistors
 
 > 退化数据来自 Meeker, W. Q. (1998). Statistical Methods for Reliability Data。（常应力下的加速退化数据）。
 
@@ -734,73 +930,108 @@ resistor_dat %>% filter(Degree == 83) %>%
 
 后续参数估计和可靠度估计就先不做了。
 
-类似的数据集还包括：
+<!-- 类似的数据集还包括： -->
 
-#### 3.3.4 惯导平台 interial navigition 数据
+<!-- #### 3.3.4 惯导平台 interial navigition 数据 -->
 
-> 数据来自于文献：Si, X. S., et al. (2012). "Remaining Useful Life Estimation Based on a Nonlinear Diffusion Degradation Process." IEEE Transactions on Reliability **61**(1): 50-67.
+<!-- > 数据来自于文献：Si, X. S., et al. (2012). "Remaining Useful Life Estimation Based on a Nonlinear Diffusion Degradation Process." IEEE Transactions on Reliability **61**(1): 50-67. -->
 
-惯导平台是武器系统、空间设备等的惯性导航系统的关键部件，其运行状态直接影响导航精度。惯导平台中的传感器主要包括3个陀螺仪、3 个加速度计，分别用于测量角速度和线加速度。统计分析表明，惯性平台几乎70%的失效来自于陀螺漂移。
+<!-- 惯导平台是武器系统、空间设备等的惯性导航系统的关键部件，其运行状态直接影响导航精度。惯导平台中的传感器主要包括3个陀螺仪、3 个加速度计，分别用于测量角速度和线加速度。统计分析表明，惯性平台几乎70%的失效来自于陀螺漂移。 -->
 
-下面的例子中,安装在惯导平台中的陀螺是在驱动和传感两个轴上具有两个自由度的机械结构。当惯性平台运行时，陀螺的转子以很高的速度转动，将导致旋转轴的磨损，并最终导致陀螺漂移。随着磨损的累积,漂移也逐渐增大，最终导致陀螺的失效。因此，陀螺漂移是用于评估惯性平台健康状态的一个性能指标。
+<!-- 下面的例子中,安装在惯导平台中的陀螺是在驱动和传感两个轴上具有两个自由度的机械结构。当惯性平台运行时，陀螺的转子以很高的速度转动，将导致旋转轴的磨损，并最终导致陀螺漂移。随着磨损的累积,漂移也逐渐增大，最终导致陀螺的失效。因此，陀螺漂移是用于评估惯性平台健康状态的一个性能指标。 -->
 
-图给出的是传感轴的漂移退化测量数据，与驱动轴相比,传感轴的漂移在评价陀螺退化时占主要地位。退化试验数据包括5个试验样品，每个产品进行9次测量，试验条件与现场条件相似。
+<!-- 图给出的是传感轴的漂移退化测量数据，与驱动轴相比,传感轴的漂移在评价陀螺退化时占主要地位。退化试验数据包括5个试验样品，每个产品进行9次测量，试验条件与现场条件相似。 -->
 
-![](images/paste-40CEA295.png)
+<!-- ![](images/paste-40CEA295.png) -->
 
-```{r}
-interial_dat = read.csv("dataset/interial_navigition.csv")
-knitr::kable(head(interial_dat))
-```
+<!-- ```{r} -->
 
-该数据需要用非线性的漂移参数的维纳过程来刻画。暂时按下不表。
+<!-- interial_dat = read.csv("dataset/interial_navigition.csv") -->
 
-```{r}
-interial_new = interial_dat %>% 
-  pivot_longer(`Item1`:`Item5`, 
-    names_to = "Product", 
-    values_to = "Value")
+<!-- knitr::kable(head(interial_dat)) -->
 
-interial_new %>% 
-  ggplot(aes(time,Value)) + 
-  geom_line(aes(col = Product)) +
-  geom_point(aes(col = Product,shape = Product)) + 
-  scale_color_viridis(option = "D",discrete = T) + 
-  scale_x_continuous(limits = c(0, 25),breaks = seq(0,25,2.5)) +
-  theme_bw() +   
-  ylab("Condition monitoring time (hours)") +
-  xlab("Gyropic drift (/h)") + 
-  theme(panel.grid = element_blank(),
-        legend.position = "right") 
-```
+<!-- ``` -->
 
-#### 3.3.5 铝合金疲劳裂纹长度 2017-T4 Aluminum Alloy
+<!-- 该数据需要用非线性的漂移参数的维纳过程来刻画。暂时按下不表。 -->
 
-> 数据来自： (Si, X. S., et al. (2012). "Remaining Useful Life Estimation Based on a Nonlinear Diffusion Degradation Process." IEEE Transactions on Reliability 61(1): 50-67).
+<!-- ```{r} -->
 
-它是飞机上常用的金属材料，这种材料的完整性通过**疲劳裂纹的长度**来评估。当疲劳裂纹的长度等于或大于预先设定的阈值6mm时，这种材料制成的结构被认为处于非常临界的状态，并被定义为失效。得到的数据代表了2017-T4铝合金4个试件在200 MPa应力水平下的裂纹长度扩展，模拟了实际操作条件。
+<!-- interial_new = interial_dat %>%  -->
 
-对于每个项目，疲劳裂纹长度记录在增加100,000循环，直到实验结束。在测试过程中，为每个项目记录了十个裂缝级别。**退化过程存在非线性**。
+<!--   pivot_longer(`Item1`:`Item5`,  -->
 
-```{r}
-Alloy_dat = read.csv("dataset/2017-T4 Aluminum Alloy.csv")
-knitr::kable(head(Alloy_dat))
-```
+<!--     names_to = "Product",  -->
 
-```{r}
-Alloy_new = Alloy_dat %>% 
-  pivot_longer(`Item1`:`Item4`, 
-    names_to = "Product", 
-    values_to = "Value")
+<!--     values_to = "Value") -->
 
-Alloy_new %>% 
-  ggplot(aes(Cycle,Value)) + 
-  geom_line(aes(col = Product)) +
-  geom_point(aes(col = Product,shape = Product)) + 
-  scale_color_viridis(option = "D",discrete = T) +
-  theme_bw() +   
-  ylab("Condition monitoring time (hours)") +
-  xlab("Gyropic drift (/h)") + 
-  theme(panel.grid = element_blank(),
-        legend.position = "right") 
-```
+<!-- interial_new %>%  -->
+
+<!--   ggplot(aes(time,Value)) +  -->
+
+<!--   geom_line(aes(col = Product)) + -->
+
+<!--   geom_point(aes(col = Product,shape = Product)) +  -->
+
+<!--   scale_color_viridis(option = "D",discrete = T) +  -->
+
+<!--   scale_x_continuous(limits = c(0, 25),breaks = seq(0,25,2.5)) + -->
+
+<!--   theme_bw() +    -->
+
+<!--   ylab("Condition monitoring time (hours)") + -->
+
+<!--   xlab("Gyropic drift (/h)") +  -->
+
+<!--   theme(panel.grid = element_blank(), -->
+
+<!--         legend.position = "right")  -->
+
+<!-- ``` -->
+
+<!-- #### 3.3.5 铝合金疲劳裂纹长度 2017-T4 Aluminum Alloy -->
+
+<!-- > 数据来自： (Si, X. S., et al. (2012). "Remaining Useful Life Estimation Based on a Nonlinear Diffusion Degradation Process." IEEE Transactions on Reliability 61(1): 50-67). -->
+
+<!-- 它是飞机上常用的金属材料，这种材料的完整性通过**疲劳裂纹的长度**来评估。当疲劳裂纹的长度等于或大于预先设定的阈值6mm时，这种材料制成的结构被认为处于非常临界的状态，并被定义为失效。得到的数据代表了2017-T4铝合金4个试件在200 MPa应力水平下的裂纹长度扩展，模拟了实际操作条件。 -->
+
+<!-- 对于每个项目，疲劳裂纹长度记录在增加100,000循环，直到实验结束。在测试过程中，为每个项目记录了十个裂缝级别。**退化过程存在非线性**。 -->
+
+<!-- ```{r} -->
+
+<!-- Alloy_dat = read.csv("dataset/2017-T4 Aluminum Alloy.csv") -->
+
+<!-- knitr::kable(head(Alloy_dat)) -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!-- Alloy_new = Alloy_dat %>%  -->
+
+<!--   pivot_longer(`Item1`:`Item4`,  -->
+
+<!--     names_to = "Product",  -->
+
+<!--     values_to = "Value") -->
+
+<!-- Alloy_new %>%  -->
+
+<!--   ggplot(aes(Cycle,Value)) +  -->
+
+<!--   geom_line(aes(col = Product)) + -->
+
+<!--   geom_point(aes(col = Product,shape = Product)) +  -->
+
+<!--   scale_color_viridis(option = "D",discrete = T) + -->
+
+<!--   theme_bw() +    -->
+
+<!--   ylab("Condition monitoring time (hours)") + -->
+
+<!--   xlab("Gyropic drift (/h)") +  -->
+
+<!--   theme(panel.grid = element_blank(), -->
+
+<!--         legend.position = "right")  -->
+
+<!-- ``` -->

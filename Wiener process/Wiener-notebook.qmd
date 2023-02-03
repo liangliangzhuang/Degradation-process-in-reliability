@@ -81,7 +81,7 @@ $$ 式中: $\{B(t)\}, t \geqslant 0$ 是标准 Wiener 过程或标准布朗运�
 **可靠度**
 
 如果产品的性能退化过程是一元 Wiener 过程，失效阈值为$l$。 则可靠度为 $$
-R(t)= 1-F(t ; {\mu}, {\sigma})=\Phi\left(\frac{l-{\mu} t}{{\sigma} \sqrt{t}}\right)-\exp \left(\frac{2 {\mu} l}{{\sigma}^2}\right) \Phi\left(\frac{-l-{\mu} t}{{\sigma} \sqrt{t}}\right)
+R(t)= 1-F(t ; \mu, \sigma)=\Phi\left(\frac{l-\mu t}{\sigma \sqrt{t}}\right)-\exp \left(\frac{2 \mu l}{\sigma^2}\right) \Phi\left(\frac{-l-\mu t}{\sigma \sqrt{t}}\right)
 $$
 
 **剩余使用寿命**
@@ -142,8 +142,6 @@ plot_path = function(data = dat1){
   print(p)
 }
 ```
-
-
 
 ```{r}
 group = 6
@@ -249,6 +247,7 @@ RUL_density = function(t = 1:100, cur_time = 100, threshold = 150, par = mle_par
 ```
 
 给一个简单例子，当前时刻为10，计算对应的RUL密度函数
+
 ```{r}
 rul_den = RUL_density(t = 1:100, cur_time = 100, threshold = 150, par = mle_par)
 plot(rul_den,type = 'l',xlab = "Time", ylab = "RUL")
@@ -315,7 +314,6 @@ legend("top", legend = c("RUL distribution","Point estimation","Real value"),
 #| fig-align: "center"
 RUL_3D_density(fut_time,time_epoch,rul_den,threshold,real_RUL,zlim = c(0,0.08))
 ```
-
 
 ##### 3.1.2.2 贝叶斯分析
 

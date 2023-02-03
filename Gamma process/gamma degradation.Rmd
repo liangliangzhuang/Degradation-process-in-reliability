@@ -176,7 +176,7 @@ $$
 $$
 \begin{aligned}
 E[\bar{R}] &=\alpha \beta \\
-{Var}[\bar{R}]&=\frac{1}{M^2} \alpha \beta^2 \sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right]\\
+Var[\bar{R}]&=\frac{1}{M^2} \alpha \beta^2 \sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right]\\
 \end{aligned}
 $$
 所以，
@@ -185,7 +185,7 @@ $$
 \begin{aligned}
 E\left[S_R^2\right]&=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i} E\left[R_{i j}-\bar{R}\right]^2\\
 &=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i} E\left[R_{i j}-\alpha \beta-(\bar{R}-\alpha \beta)\right]^2 \\
-&=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i}\left\{{Var}\left[R_{i j}\right]^2-\frac{2}{m_i} {Var}\left[R_{i j}\right]+{Var}[\bar{R}]\right\} \\
+&=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i}\left\{Var\left[R_{i j}\right]^2-\frac{2}{m_i} Var\left[R_{i j}\right]+Var[\bar{R}]\right\} \\
 &=\frac{1}{M-1} \alpha \beta^2 \sum_{i=1}^n \sum_{j=1}^{m_i}\left[\frac{1}{\Delta t_{i j}}\right]
 \end{aligned}
 $$

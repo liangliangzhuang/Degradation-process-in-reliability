@@ -99,7 +99,7 @@ sim_dat = function(group = 6, t = 1:200, para = c(4,2)){
   # dat_unit = numeric()
   for(i in 1:group){
     for(j in 1:epoch) {
-      dat_unit[j,i+1] = rgamma(1,para[1]*delta_t[j],para[2])
+      dat_unit[j,i+1] = rgamma(1,shape = para[1]*delta_t[j],scale = para[2])
       dat[,i+1] = cumsum(dat_unit[,i+1])
     }
   }
@@ -180,7 +180,7 @@ moment_par
 
 #### 极大似然估计
 
-```{r}
+```{r }
 library(BB)
 
 gamma_alpmle = function(x, data_unit, data, t){
@@ -198,7 +198,7 @@ mle_alp = mle_re$par
 mle_beta = sum(increment)/(mle_alp*group*max(t))
 mle_par = c(mle_alp,mle_beta)
 
-
+mle_par
 # mle_re = uniroot(gamma_alpmle, data_unit = increment, data = degradation, t = 1:200, lower = 1, upper = 100, tol = 1e-15, maxiter = 10000)
 # 
 # mle_alp = mle_re$root

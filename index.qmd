@@ -24,13 +24,13 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 近年来，基于退化的可靠性技术在模型、方法和应用等方面得到快速发展。其中，在**基于退化的可靠性模型**方面，以随机过程理论为基础，根据工程需要，并考虑模型的简明性、实用性和适用性，已经提出了多种类型的模型，包括：
 
-1.  退化轨道模型（如 Paris 模型、随机斜率/截距模型、幂律模型、反应论模型）
+<!-- 1.  退化轨道模型（如 Paris 模型、随机斜率/截距模型、幂律模型、反应论模型） -->
 
-2.  基于 Wiener 过程的模型
+1.  基于 Wiener 过程的模型
 
-3.  基于 Gamma 过程的模型
+2.  基于 Gamma 过程的模型
 
-4.  基于逆高斯过程的模型
+3.  基于逆高斯过程的模型
 
 在基于退化的可靠性建模方法，以数理统计理论为基础，针对模型和退化数据的类型，研究**矩估计、极大似估计及 EM 算法、Bayes 估计及 MCMC算法、基于滤波的状态估计方法**，以及**非参数和半参数方法**等，解决模型辨识和修正问题;
 
@@ -50,6 +50,7 @@ Wiener 退化过程可以描述产品退化过程的时间不确定性，而且�
 
 > 对 Wiener 退化过程及其观测过程所构成的**状态空间模型**，可以采用 **Kalman 滤波技术**进行处理，为产品**在线寿命预测、视情维修决策**等提供了可行的算法和实现途径。
 
+## 2.1 经典的 Wiener 过程
 
 称 $\{X(t), t \geqslant 0\}$ 是漂移参数为 $\mu$ 、扩散参数为 $\sigma$ 的 (一元) Wiener 过程, 若
 
@@ -92,14 +93,14 @@ library(tidyverse)
 library(viridis)
 ```
 
-
-### 2.1 统计推断
+### 2.1.1 统计推断
 
 假设共有 $n$ 个样品进行性能退化试验。样品 $i$ 初始时刻 $t_{i 0}$ 退化量取值为 $X_{i 0}=0$, 在 时刻 $t_{i 1}, \cdots, t_{i m_i}$ 样品 $i$ 退化量为 $X_{i 1}, \cdots, X_{i m_i}$ 。记 $\Delta X_{i j}=X_{i j}-X_{i, j-1}$ 是样品 $i$ 在时刻 $t_{i, j-1} \sim t_{i j}$ 之间的退化增量, $\Delta t_{i j}=t_{i j}-t_{i j-1}, j=1,2, \cdots, m_i, i=1,2, \cdots, n$ 为各样品的测量间隔。
 
-#### 2.1.1 极大似然估计
+#### 2.1.1.1 极大似然估计
 
 <!-- 在简单情形, 认为退化数据的测量不存在误差, 并且总体退化过程不存在随机效应。 -->
+
 由 Wiener 过程的性质, 容易知道 $$
 \Delta X_{i j} \sim N\left(\mu \Delta t_{i j}, \sigma^2 \Delta t_{i j}\right)
 $$
@@ -110,9 +111,7 @@ $$ 由式可以直接求得漂移参数 $\mu$ 和扩散参数 $\sigma^2$ 的极�
 \hat{\mu}=\frac{\sum_{i=1}^n X_{i m_i}}{\sum_{i=1}^n t_{i m_i}}, \hat{\sigma}^2=\frac{1}{\sum_{i=1}^n m_i}\left[\sum_{i=1}^n \sum_{j=1}^{m_i} \frac{\left(\Delta X_{i j}\right)^2}{\Delta t_{i j}}-\frac{\left(\sum_{i=1}^n X_{i m_i}\right)^2}{\sum_{i=1}^n t_{i m_i}}\right]
 $$
 
-
-
-#### 2.1.2 贝叶斯分析
+#### 2.1.1.2 贝叶斯分析
 
 <!-- 基于 rstan 进行贝叶斯估计。详细的参考文献如下： -->
 
@@ -136,7 +135,7 @@ $$
 
 准备$\Delta t_{ij}$ 和 $\Delta x_{ij}$的数据，并且标志出矩阵的维数。
 
-- 构建模型（`wiener_linear.stan`）
+-   构建模型（`wiener_linear.stan`）
 
 ``` markdown
 data {
@@ -162,9 +161,222 @@ model {
 }
 ```
 
-### 2.2 模拟数据分析
+## 2.2 加速 Wiener 退化过程
 
-### 数据模拟产生
+# 3. Gamma 退化过程模型
+
+Gamma 过程描述的退化过程是严格单调非负的，并且Gamma 过程是纯跳过程，其样本路径不连续，既可描述连续的微小冲击导致的缓慢退化，也可以描述大的冲击导致的大的损伤。 当产品的退化过程是严格单调非负时, Wiener 过程不再适用。Gamma 过程具有独立非负增量,可以对该类退化过程进行建模。
+
+## 3.1 经典 Gamma 退化过程模型
+
+称连续时间随机过程 $\{X(t), t \geqslant 0\}$ 是平稳 Gamma 过程 ${ }^{[2]}$, 若它满足以下性质:
+
+(1) $X(0)=0$ 以概率 1 成立。
+
+(2) $X(t)$ 具有平稳独立增量。
+
+(3) 对任意 $t \geqslant 0$ 和 $\Delta t, X(t+\Delta t)-X(t) \sim G a(\alpha \Delta t, \beta)$ 。
+
+    其中 $G a(\alpha, \beta)$ 是形状参数为 $\alpha>0$ 、尺度参数为 $\beta>0$ 的 Gamma 分布, 分布密度函数为 $$
+    f(x \mid \alpha, \beta)=\frac{1}{\Gamma(\alpha) \beta^\alpha} \alpha^{\alpha-1} \mathrm{e}^{-x / \beta} I_{(0, \infty)}(x)
+    $$ 并且 $\{X(t), t \geqslant 0\}$ 称为形状参数为 $\alpha>0$ 、尺度参数为 $\beta>0$ 的平稳 Gamma 过程。
+
+**产品寿命**
+
+因为Gamma 过程的退化是单调递增的，即$X(t) \sim Ga(\alpha t,\beta)$ ,因此**产品寿命**的分布可以直接通过退化量的转换获得。当给定产品退化失效阈值 $\ell$ 时，产品寿命 $T$ 的CDF和PDF为
+
+$$
+\begin{aligned}
+{F}_{{T}}(t) &={P}({T} \leqslant {t})={P}({X}({t}) \geqslant \ell) \\
+&=\int_{\ell}^{\infty} \frac{1}{\Gamma(\alpha {t}) \beta^{\alpha {t}}} {x}^{\alpha {t}-1} \mathrm{e}^{-\frac{{x}}{\beta}} {dx} \\
+&=\frac{1}{\Gamma(\alpha {t})} \int_{\frac{\ell}{\beta}}^{\infty} \xi^{\alpha {t}-1} \mathrm{e}^{-\xi} {d} \xi ,\\
+{f}_{{T}}(t) &=\frac{{d}}{{dt}} \frac{\Gamma(\alpha {t}, 1 / \beta)}{\Gamma(\alpha {t})} \\
+&=\frac{\alpha}{\Gamma(\alpha {t})} \int_0^{\nu / \beta}\left[\ln (\xi)-\frac{\Gamma^{\prime}(\alpha {t})}{\Gamma(\alpha {t})}\right] \xi^{\alpha {t}-1} \mathrm{e}^{-\xi} {d} \xi.
+\end{aligned}
+$$
+
+由于${f}_{{T}}({t})$ 相当复杂，因此一般用B-S分布来逼近：
+
+$$
+{F}(t ; \ell)=\Phi\left[\frac{1}{{v}}\left(\sqrt{\frac{{t}}{{u}}}-\sqrt{\frac{{u}}{{t}}}\right)\right], \quad {t}>0.
+$$ 其中，$\Phi(\cdot)$ 为标准正态分布，$v=\sqrt{\frac{\beta}{\ell}}, u=\frac{\ell}{\beta \alpha}$. 相应的 PDF 为 $$
+{f}(t ; \ell)=\frac{1}{2 \sqrt{2 \pi} {uv}}\left[\left(\frac{{u}}{{t}}\right)^{\frac{1}{2}}+\left(\frac{{u}}{{t}}\right)^{\frac{3}{2}}\right] \exp \left[-\frac{1}{2 {v}^2}\left(\frac{{t}}{{u}}-2+\frac{{u}}{{t}}\right)\right], {t}>0.
+$$
+
+**剩余寿命**
+
+根据Gamma 过程的增量独立性，可以得到剩余寿命的分布 $$
+\begin{aligned}
+{F}(t \mid s) &={P}\left({T} \leqslant t \mid {X}(s)={x}_{s}\right) \\
+&={P}\left(X(t)-X(s) \geqslant \ell-x_{s}\right) \\
+&=\frac{\Gamma\left(\alpha(t-s),\left(\ell-x_{s}\right) / \beta\right)}{\Gamma(\alpha(t-s))} .
+\end{aligned}
+$$ 这与将失效阈值由 $\ell$ 变为 $\ell-{x_s}$ 、时间 $t$ 变为 $t-s$ 情形的寿命分布是一样的. 因此，在给定当前状态情况下，可以按照类似的途径更新剩余寿命.
+
+### 3.1.1 统计推断
+
+假设共有 ${n}$ 个样品进行性能退化试验. 对于样品 $i$, 初始时刻 $t_0$ 性能退化量为 $X_{i 0}=0$, 在时刻 $t_1, \cdots, t_{m_i}$ 测量产品的性能退化量, 得到其测量值为 $X_{i 1}, \cdots, X_{i m_i}$. 记 $\Delta x_{i j}=X_{i j}-X_{i(j-1)}$ 是样品 $i$ 在时刻 $t_{j-1}$ 和 $t_j$ 之间的性能退化量, 由 Gamma 过程的独立增量性得到$\Delta X(t) \sim Ga(\alpha \Delta t_{ij},\beta)$。
+
+<!-- #### 3.1.1 矩估计 -->
+
+<!-- 令 $R_{i j}=\Delta X_{i j} / \Delta t_{i j}$, 则诸 $R_{i j}, j=1,2, \cdots, m_i, i=1,2, \cdots, n$ 服从形状参数为 $\alpha$ 、尺度参数为 $\beta$ 的 Gamma 分布, 且相互独立(根据 Gamma 过程独立增量特性, 以及各样品退化过程的独立性)。记 $M=\sum_{i=1}^n m_i$, 样本均值和样本方差为 $$ -->
+
+<!-- \begin{align} -->
+
+<!-- \bar{R}& =\frac{1}{M} \sum_{i=1}^n \sum_{j=1}^{m_i} R_{i j} \\ -->
+
+<!-- S_R^2 & =\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i}\left[R_{i j}-\bar{R}\right]^2 -->
+
+<!-- \end{align} -->
+
+<!-- $$ 易知 $$ -->
+
+<!-- \begin{aligned} -->
+
+<!-- E[\bar{R}] &=\alpha \beta \\ -->
+
+<!-- Var[\bar{R}]&=\frac{1}{M^2} \alpha \beta^2 \sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right]\\ -->
+
+<!-- \end{aligned} -->
+
+<!-- $$ 所以， -->
+
+<!-- $$ -->
+
+<!-- \begin{aligned} -->
+
+<!-- E\left[S_R^2\right]&=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i} E\left[R_{i j}-\bar{R}\right]^2\\ -->
+
+<!-- &=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i} E\left[R_{i j}-\alpha \beta-(\bar{R}-\alpha \beta)\right]^2 \\ -->
+
+<!-- &=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i}\left\{Var\left[R_{i j}\right]^2-\frac{2}{m_i} Var\left[R_{i j}\right]+ Var[\bar{R}]\right\} \\ -->
+
+<!-- &=\frac{1}{M-1} \alpha \beta^2 \sum_{i=1}^n \sum_{j=1}^{m_i}\left[\frac{1}{\Delta t_{i j}}\right] -->
+
+<!-- \end{aligned} -->
+
+<!-- $$ 将待估参数和样本矩联系起来, 即令 $$ -->
+
+<!-- \left\{\begin{array}{l} -->
+
+<!-- \alpha \beta=\bar{R} \\ -->
+
+<!-- \alpha \beta^2=M S_R^2 / \sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right] -->
+
+<!-- \end{array}\right. -->
+
+<!-- $$ 可得如下矩估计: $$ -->
+
+<!-- \begin{gathered} -->
+
+<!-- \hat{\alpha}=\frac{\sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right] \bar{R}^2}{M S_R^2} \\ -->
+
+<!-- \hat{\beta}=\frac{M S_R^2}{\sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right] \bar{R}} -->
+
+<!-- \end{gathered} -->
+
+<!-- $$ -->
+
+<!-- 上述矩估计方法是基于退化速率的，金光还给出了基于退化量的矩估计（详见P128）,注意到当测量间隔都相同时，两个矩估计方法相同。 -->
+
+#### 3.1.1.1 极大似然估计
+
+由 Gamma 过程独立增量特性, 以及 $$
+\Delta X_{i j} \sim G a\left(\alpha \Delta t_{i j}, \beta\right)=\frac{\left(\Delta x_{i j} / \beta\right)^{\alpha \Delta t_{i j}-1}}{\beta \Gamma\left(\alpha \Delta t_{i j}\right)} \mathrm{e}^{-\Delta x_{i j} / \beta}
+$$ 可以获得对数似然函数为 $$
+l(\alpha, \beta)=\sum_{i=1}^n\left(\sum_{j=1}^{m_i}\left(\alpha \Delta t_{i j}-1\right) \ln \Delta x_{i j}-\alpha t_{i m_i} \ln \beta-\sum_{j=1}^{m_i} \ln \Gamma\left(\alpha \Delta t_{i j}\right)-\frac{x_{i m_i}}{\beta}\right)
+$$ 由极大似然估计原理, 令 $$
+\left\{\begin{array}{l}
+\frac{\partial l}{\partial \alpha}=\sum_{i=1}^n \sum_{j=1}^{m_i} \Delta t_{i j}\left(\ln x_{i j}-\psi\left(\alpha \Delta t_{i j}\right)-\ln \beta\right)=0 \\
+\frac{\partial l}{\partial \beta}=\sum_{i=1}^n\left(\frac{x_{i m_i}}{\beta^2}-\frac{\alpha t_{i m_i}}{\beta}\right)=0
+\end{array}\right.
+$$ 式中 $\psi(u)$ 是 digamma 函数。 $$
+\begin{aligned}
+&\hat{\beta}=\frac{\sum_{i=1}^n X_{i m_i}}{\alpha \sum_{i=1}^n t_{i m_i}}\\
+&\sum_{i=1}^n\left[\sum_{j=1}^{m_i} \Delta t_{i j} \ln \left(\Delta x_{i j}\right)-t_{i m_i} \ln \frac{x_{i m_i}}{\alpha t_{i m_i}}-\sum_{j=1}^{m_i} \Delta t_{i j} \psi\left(\alpha \Delta t_{i j}\right)\right]=0
+\end{aligned}
+$$
+
+#### 3.1.1.2 贝叶斯分析
+
+## 3.2 加速 Gamma 退化过程
+
+# 4. IG 退化过程模型
+
+<!-- > 来源：Ye, Z.-S. and M. Xie (2015). "Stochastic modelling and analysis of degradation for highly reliable products." Applied Stochastic Models in Business and Industry 31(1): 16-32. -->
+
+虽然 Wiener 过程和 Gamma 过程在退化建模中得到了广泛的应用，但这两种模型在实际应用中无法拟合大量退化数据。当这两个过程失败时，另一个选择是逆高斯(inverse Gaussian, IG)过程。
+
+## 4.1 经典的 IG 过程
+
+设$X(t)$为产品在$t$时刻的退化特性。假设退化路径$X(t)$可以用参数$\mu$和$\lambda$的IG过程来建模。此时，$X(t)$具有以下属性:
+
+-   $X(0)=0$，概率为1;
+-   对于 $t>s>u, X(t)-X(s) \geq 0, X(s)-X(u) \geq 0$, $X(t)-X(s)$ 与 $X(s)-X(u)$ 相互独立;
+-   对于 $t>s \geq 0$, 每个增量 $X(t)-X(s)$ 都服从 IG 分布 $I G\left(\mu (t-s), \lambda(t-s)^2\right)$。
+
+IG 分布的概率密度函数(pdf) $I G(a, b)$为 $$
+f_{I G}(x, a, b)=\left[\frac{b}{2 \pi x^3}\right]^{1 / 2} \exp \left\{-\frac{b(x-a)^2}{2 a^2 x}\right\}
+$$ 累计分布函数（cdf）为 $$
+F_{IG}(x, a, b)=\Phi\left[\sqrt{\frac{b}{x}}\left(\frac{x}{a}-1\right)\right]+\exp \left(\frac{2 b}{a}\right) \Phi\left[-\sqrt{\frac{b}{x}}\left(\frac{x}{a}+1\right)\right], X>0 .
+$$
+
+**产品寿命/首达时分布**
+
+令 $T$ 为$X(t)$越过临界值$l$的首达时。此时，我们有 $$
+T=\inf \{t \mid X(t) \geq l, t>0\} .
+$$ 对于给定的$l$，生命周期$T$具有以下 cdf
+
+$$
+\begin{aligned}
+F(t) &=P(T \leq t)=P(X(t)>l)=1-F_{I G}\left(l ; \mu t, \lambda t^2\right) \\
+&=\Phi\left[ \sqrt{\frac{\lambda}{l}}(t - \frac{l}{\mu})
+\right] - \exp\left({\frac{2 \lambda t}{\mu}}\right) \Phi\left[-\sqrt{\frac{\lambda}{l}}(\frac{l}{\mu} +t)\right]
+\end{aligned}$$
+
+其中 $\Phi(\cdot)$ 为标准正态分布的cdf。
+
+**剩余使用寿命**
+
+假设其运行到时刻 $\tau$ 仍末失效, 且当前性能退化量为 $x_\tau\left(x_\tau<l\right)$, 则产品的剩余寿命 $T_1$ 可以表示为 $$
+T_1=\inf \left\{t \mid X(t+\tau) \geqslant l, X(\tau)=x_\tau, t \geqslant 0\right\}
+$$ 其密度函数只需将寿命 $T$ 密度函数中的失效阈值 $l$ 替换为 $l-x_\tau$, 即
+
+$$
+\begin{aligned}
+F_{T_1}(t) = \Phi\left[ \sqrt{\frac{\lambda}{l-x_\tau}}(t - \frac{l}{\mu})
+\right] - \exp\left({\frac{2 \lambda t}{\mu}}\right) \Phi\left[-\sqrt{\frac{\lambda}{l-x_\tau}}(\frac{l-x_\tau}{\mu} +t)\right]
+\end{aligned}$$
+
+$$
+\begin{aligned}
+f_{T_1}(t)= & \phi\left(\sqrt{\frac{\lambda}{l-x_\tau}}\left(t-\frac{l}{\mu}\right)\right) \cdot \sqrt{\frac{\lambda}{l-x_\tau}}-\frac{2 \lambda}{\mu} \exp \left(\frac{2 \lambda t}{\mu}\right) \Phi\left(-\sqrt{\frac{\lambda}{l-x_\tau}}\left(\frac{l-x_\tau}{\mu}+t\right)\right) \\
+& +\exp \left(\frac{2 \lambda t}{\mu}\right) \phi\left(-\sqrt{\frac{\lambda}{l-x_\tau}}\left(\frac{l-x_\tau}{\mu}+t\right)\right) \cdot \sqrt{\frac{\lambda}{l-x_\tau}}
+\end{aligned}
+$$
+
+### 4.1.1 统计推断
+
+令$X\left(t_{ij}\right)$为第$i$个测试单元在$t_{ij}$时刻测量的退化特性，其中$i=1， \ldots, n$和$j=$ $1， \ldots, m_i$。
+
+#### 4.1.1.1 极大似然估计
+
+根据$\Delta x_{ij}=X\left(t_{ij}\right)-X\left(t_{ij -1}\right)， i=1， \ldots n, j=1， \ldots, m_i$， $(\mu, \lambda)$的似然函数为 $$
+L(\mu, \lambda)=\prod_{i=1}^n \prod_{j=1}^{m_i} f_{I G}\left(\Delta x_{i j}, \mu \Delta t_{i j}, \lambda \Delta^2 t_{i j}\right).
+$$ 对数似然函数为： $$
+\log L(\mu, \lambda) \propto \sum_{i=1}^n \sum_{j=1}^{m_i}\left(\frac{1}{2} \log (\lambda)+\log \Delta t_{i j}-\frac{3}{2} \log \left(\Delta x_{i j}\right)-\frac{\lambda\left(\Delta x_{i j}-\mu \Delta t_{i j}\right)^2}{2 \mu^2 \Delta x_{i j}}\right)
+$$
+
+#### 4.1.1.2 贝叶斯估计
+
+## 4.2 加速 IG 退化过程
+
+# 5. 模拟数据分析
+
+## 5.1 经典维纳过程
+
+数据模拟产生
+
 ```{r include=FALSE}
 # 数据模拟产生
 sim_dat = function(group = 6, t = 1:200, para = c(1,0.1)){
@@ -190,12 +402,12 @@ sim_dat = function(group = 6, t = 1:200, para = c(1,0.1)){
 # 绘制退化路径图
 plot_path = function(data = dat1){
     # 画图
-  p = data %>% pivot_longer(paste(1:group), 
-                       names_to = "Group", 
-                       values_to = "y") %>% 
-    ggplot(aes(Time,y,color = Group)) + 
-    geom_line() + 
-    scale_color_viridis(discrete = T) + 
+  p = data %>% pivot_longer(paste(1:group),
+                       names_to = "Group",
+                       values_to = "y") %>%
+    ggplot(aes(Time,y,color = Group)) +
+    geom_line() +
+    scale_color_viridis(discrete = T) +
     ylab("Degradation") #+
     #theme_bw() +
     #theme(panel.grid = element_blank())
@@ -212,8 +424,7 @@ knitr::kable(head(dat))
 plot_path(dat)
 ```
 
-
-### 绘制退化路径图
+绘制退化路径图
 
 ```{r include=FALSE}
 cumsub = function(x){
@@ -226,7 +437,8 @@ cumsub = function(x){
   return(re)
 }
 ```
-### 极大似然估计
+
+极大似然估计
 
 ```{r include=FALSE}
 Weiner_mle = function(par = c(1,1),data = dat){
@@ -246,7 +458,7 @@ Weiner_mle = function(par = c(1,1),data = dat){
 ```
 
 ```{r}
-mle_re = optim(par=c(1,1), fn = Weiner_mle, 
+mle_re = optim(par=c(1,1), fn = Weiner_mle,
       data = dat, method = "BFGS", hessian = TRUE)
 # mle_re
 mle_par = mle_re$par
@@ -255,11 +467,10 @@ mle_up = mle_re$par + sqrt(diag(solve(mle_re$hessian)))*qnorm(0.975)
 mle_low = mle_re$par - sqrt(diag(solve(mle_re$hessian)))*qnorm(0.975) #hessian 和协方差矩阵存在逆的关系：https://blog.csdn.net/anruoxi3236/article/details/102005217
 mle_summary = round(cbind(mle_low,mle_re$par,mle_up),3)
 colnames(mle_summary) = c("low","mean","up")
-knitr::kable(mle_summary) 
+knitr::kable(mle_summary)
 ```
 
-
-### 贝叶斯估计
+贝叶斯估计
 
 ```{r}
 # 数据准备
@@ -311,20 +522,18 @@ traceplot(fit1,pars = c("mu","w"),
 
 可以看出，效果较好。真实值为：$\mu = 2,w = 1 / \sigma^2 = 0.25$，估计值为：$\mu = 2,w = 1 / \sigma^2 = 0.5$。 估计值的$\sigma^2$ 有些问题，应该如何处理？
 
-
-### 可靠度和 RUL 计算
+可靠度和 RUL 计算
 
 这里以MLE的参数估计值作为案例。
+
 ```{r,collapse=TRUE}
 ## 可靠度计算
 Wiener_R = function(t = 100, threshold = 150,par = mle_par){
-  R = pnorm((threshold - par[1]*t)/(par[2]*sqrt(t))) - exp(2*par[1]*threshold/(par[2]^2)) * pnorm((-threshold - par[1]*t)/(par[2]*sqrt(t))) 
+  R = pnorm((threshold - par[1]*t)/(par[2]*sqrt(t))) - exp(2*par[1]*threshold/(par[2]^2)) * pnorm((-threshold - par[1]*t)/(par[2]*sqrt(t)))
   return(R)
 }
 
 ```
-
-
 
 ```{r}
 R_time = 1:300
@@ -344,121 +553,207 @@ ggplot(R_data) +
   ylab("Reliability") + xlab("time")
 ```
 
+## 5.2 经典 Gamma 过程
 
-# 3. Gamma 退化过程模型
+## 5.3 经典 IG 过程
 
-Gamma 过程描述的退化过程是严格单调非负的，并且Gamma 过程是纯跳过程，其样本路径不连续，既可描述连续的微小冲击导致的缓慢退化，也可以描述大的冲击导致的大的损伤。 当产品的退化过程是严格单调非负时, Wiener 过程不再适用。Gamma 过程具有独立非负增量,可以对该类退化过程进行建模。
+数据模拟产生
 
+```{r include=FALSE}
+# 数据模拟产生
+sim_dat = function(group = 6, t = 1:200, para = c(2,2)){
+  library(SuppDists)
+  # para 指 mu,lambda
+  # epoch 指测量次数，group 指组数
+  delta_t = diff(t)
+  epoch = length(delta_t)
+  dat = matrix(NA,epoch,group+1)
+  dat[,1] = seq(1,epoch)
+  dat_unit = numeric()
+  for(i in 1:group){
+    for(j in 1:epoch) dat_unit[j] = rinvGauss(1,para[1]*delta_t[j], para[2] * (delta_t[j])^2)  #来自SuppDists包，注意与statmod包不同rinvgauss()
+    dat[,i+1] = cumsum(dat_unit)
+  }
+  dat = data.frame(dat)
+  dat1 = rbind(rep(0,group+1),dat) # 加入初始值绘制点
+  colnames(dat1) = c("Time",paste(1:group,sep=''))
+  return(dat1)
+}
+```
 
-称连续时间随机过程 $\{X(t), t \geqslant 0\}$ 是平稳 Gamma 过程 ${ }^{[2]}$, 若它满足以下性质:
+绘制退化路径图
 
-(1) $X(0)=0$ 以概率 1 成立。
+```{r include=FALSE}
+# 绘制退化路径图
+plot_path = function(data = dat1){
+    # 画图
+  p = data %>% pivot_longer(paste(1:group),
+                       names_to = "Group",
+                       values_to = "y") %>%
+    ggplot(aes(Time,y,color = Group)) +
+    geom_line() +
+    scale_color_viridis(discrete = T) +
+    ylab("Degradation") #+
+    #theme_bw() +
+    #theme(panel.grid = element_blank())
+  print(p)
+}
+```
 
-(2) $X(t)$ 具有平稳独立增量。
+```{r }
+group = 6
+t = 1:200
+para = c(5,5) #eta,lambda
+dat = sim_dat(group = group, t = t, para = para)
+knitr::kable(head(dat))
+plot_path(dat)
+```
 
-(3) 对任意 $t \geqslant 0$ 和 $\Delta t, X(t+\Delta t)-X(t) \sim G a(\alpha \Delta t, \beta)$ 。
+极大似然估计
 
-    其中 $G a(\alpha, \beta)$ 是形状参数为 $\alpha>0$ 、尺度参数为 $\beta>0$ 的 Gamma 分布, 分布密度函数为 $$
-    f(x \mid \alpha, \beta)=\frac{1}{\Gamma(\alpha) \beta^\alpha} \alpha^{\alpha-1} \mathrm{e}^{-x / \beta} I_{(0, \infty)}(x)
-    $$ 并且 $\{X(t), t \geqslant 0\}$ 称为形状参数为 $\alpha>0$ 、尺度参数为 $\beta>0$ 的平稳 Gamma 过程。
+```{r include=FALSE}
+cumsub = function(x){
+  #完成逐个相减功能，类似cumsum
+  re = numeric()
+  re[1] = x[1]
+  for(i in 2:length(x)){
+    re[i] = x[i] - x[i-1]
+  }
+  return(re)
+}
+```
 
-**产品寿命**
+```{r include=FALSE}
+IG_mle = function(par = c(2,2),data = dat){
+  # 输入：mu,lambda，数据
+  # 输出：负对数似然函数
+  group = ncol(data) - 1;time = data[,1];y = data[-1,-1]
+  # 差分得到delta_time和delta_y
+  delta_time = matrix(rep(diff(time),group),length(diff(time)),group)
+  delta_y = matrix(NA,nrow(delta_time),group)
+  for(i in 1:group) delta_y[,i] = cumsub(y[,i])
 
-因为Gamma 过程的退化是单调递增的，即$X(t) \sim Ga(\alpha t,\beta)$ ,因此**产品寿命**的分布可以直接通过退化量的转换获得。当给定产品退化失效阈值 $\ell$ 时，产品寿命 $T$ 的CDF和PDF为
+  logl = nrow(delta_time) * group * 1/2 * log(par[2]) + sum(log(delta_time) - 3/2 * log(delta_y) - (par[2]*(delta_y - par[1]*delta_time)^2)/(2 * par[1]^2 * delta_y),na.rm =T)
 
-$$
-\begin{aligned}
-{F}_{{T}}(t) &={P}({T} \leqslant {t})={P}({X}({t}) \geqslant \ell) \\
-&=\int_{\ell}^{\infty} \frac{1}{\Gamma(\alpha {t}) \beta^{\alpha {t}}} {x}^{\alpha {t}-1} \mathrm{e}^{-\frac{{x}}{\beta}} {dx} \\
-&=\frac{1}{\Gamma(\alpha {t})} \int_{\frac{\ell}{\beta}}^{\infty} \xi^{\alpha {t}-1} \mathrm{e}^{-\xi} {d} \xi ,\\
-{f}_{{T}}(t) &=\frac{{d}}{{dt}} \frac{\Gamma(\alpha {t}, 1 / \beta)}{\Gamma(\alpha {t})} \\
-&=\frac{\alpha}{\Gamma(\alpha {t})} \int_0^{\nu / \beta}\left[\ln (\xi)-\frac{\Gamma^{\prime}(\alpha {t})}{\Gamma(\alpha {t})}\right] \xi^{\alpha {t}-1} \mathrm{e}^{-\xi} {d} \xi.
-\end{aligned}
-$$
+  return(-logl)
+}
+```
 
-由于${f}_{{T}}({t})$ 相当复杂，因此一般用B-S分布来逼近：
+```{r}
+mle_re = optim(par=c(0.6,5), fn = IG_mle,
+      data = dat, method = "BFGS", hessian = TRUE)
+mle_re$par
+mle_par = mle_re$par
+# 区间估计
+mle_up = mle_re$par + sqrt(diag(solve(mle_re$hessian)))*qnorm(0.975)
+mle_low = mle_re$par - sqrt(diag(solve(mle_re$hessian)))*qnorm(0.975) #hessian 和协方差矩阵存在逆的关系：https://blog.csdn.net/anruoxi3236/article/details/102005217
+mle_summary = round(cbind(mle_low,mle_re$par,mle_up,para),3)
+colnames(mle_summary) = c("low","mean","up","true")
+knitr::kable(mle_summary)
+```
 
-$$
-{F}(t ; \ell)=\Phi\left[\frac{1}{{v}}\left(\sqrt{\frac{{t}}{{u}}}-\sqrt{\frac{{u}}{{t}}}\right)\right], \quad {t}>0.
-$$ 其中，$\Phi(\cdot)$ 为标准正态分布，$v=\sqrt{\frac{\beta}{\ell}}, u=\frac{\ell}{\beta \alpha}$. 相应的 PDF 为 $$
-{f}(t ; \ell)=\frac{1}{2 \sqrt{2 \pi} {uv}}\left[\left(\frac{{u}}{{t}}\right)^{\frac{1}{2}}+\left(\frac{{u}}{{t}}\right)^{\frac{3}{2}}\right] \exp \left[-\frac{1}{2 {v}^2}\left(\frac{{t}}{{u}}-2+\frac{{u}}{{t}}\right)\right], {t}>0.
-$$
+可靠度和 RUL 计算
 
-**剩余寿命**
+-   可靠度
 
-根据Gamma 过程的增量独立性，可以得到剩余寿命的分布 $$
-\begin{aligned}
-{F}(t \mid s) &={P}\left({T} \leqslant t \mid {X}(s)={x}_{s}\right) \\
-&={P}\left(X(t)-X(s) \geqslant \ell-x_{s}\right) \\
-&=\frac{\Gamma\left(\alpha(t-s),\left(\ell-x_{s}\right) / \beta\right)}{\Gamma(\alpha(t-s))} .
-\end{aligned}
-$$ 这与将失效阈值由 $\ell$ 变为 $\ell-{x_s}$ 、时间 $t$ 变为 $t-s$ 情形的寿命分布是一样的. 因此，在给定当前状态情况下，可以按照类似的途径更新剩余寿命.
+```{r,include=FALSE}
+## 可靠度计算
+IG_R = function(t = 100, threshold = 200, par = mle_par){
+  R = 1 - pnorm(sqrt(par[2]/threshold)*(t - threshold/par[1])) +
+    exp(2*par[2]*t/par[1])*pnorm(-sqrt(par[2]/threshold) *(threshold/par[1] + t))
+  return(R)
+}
+```
 
-### 3.1 统计推断
+```{r}
+# 给个简单例子
+IG_R(t = 30, threshold = 150,par = mle_par)
+# 绘制带区间估计的可靠度函数（需要优化为 ggplot 绘制）
+R_time = 1:60
+R_data = data.frame("Time" = R_time,
+  "Up" = IG_R(t = R_time, threshold = 150,par = mle_up),
+           "Mean" = IG_R(t = R_time, threshold = 150,par = mle_par),
+           "Low" = IG_R(t = R_time, threshold = 150,par = mle_low))
 
-假设共有 ${n}$ 个样品进行性能退化试验. 对于样品 $i$, 初始时刻 $t_0$ 性能退化量为 $X_{i 0}=0$, 在时刻 $t_1, \cdots, t_{m_i}$ 测量产品的性能退化量, 得到其测量值为 $X_{i 1}, \cdots, X_{i m_i}$. 记 $\Delta x_{i j}=X_{i j}-X_{i(j-1)}$ 是样品 $i$ 在时刻 $t_{j-1}$ 和 $t_j$ 之间的性能退化量, 由 Gamma 过程的独立增量性得到$\Delta X(t) \sim Ga(\alpha \Delta t_{ij},\beta)$。
+# 绘制带区间估计的可靠度函数
+ggplot(R_data) +
+  geom_line(aes(Time,Up),color = "gray60",linetype = 2) +
+  geom_line(aes(Time,Mean)) +
+  geom_line(aes(Time,Low),color = "gray60",linetype = 2) +
+  ylab("Reliability") + xlab("time")
+```
 
-#### 3.1.1 矩估计
+-   RUL
 
-令 $R_{i j}=\Delta X_{i j} / \Delta t_{i j}$, 则诸 $R_{i j}, j=1,2, \cdots, m_i, i=1,2, \cdots, n$ 服从形状参数为 $\alpha$ 、尺度参数为 $\beta$ 的 Gamma 分布, 且相互独立(根据 Gamma 过程独立增量特性, 以及各样品退化过程的独立性)。记 $M=\sum_{i=1}^n m_i$, 样本均值和样本方差为 $$
-\begin{align}
-\bar{R}& =\frac{1}{M} \sum_{i=1}^n \sum_{j=1}^{m_i} R_{i j} \\
-S_R^2 & =\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i}\left[R_{i j}-\bar{R}\right]^2
-\end{align}
-$$ 易知 $$
-\begin{aligned}
-E[\bar{R}] &=\alpha \beta \\
-Var[\bar{R}]&=\frac{1}{M^2} \alpha \beta^2 \sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right]\\
-\end{aligned}
-$$ 所以，
+```{r,include=FALSE}
+## 剩余使用寿命 ========
+RUL = function(t = 50:100, cur_time = 30, threshold = 300, data = dat, par = mle_par){
+  RUL = list()
+  cur_path = as.numeric(data[cur_time,])
+  for(i in 1:(ncol(data)-1)){
+      RUL[[i]] = numeric()
+      ll = sqrt(par[2])/sqrt((threshold - cur_path[i]))
+      RUL[[i]] = dnorm(ll * (t - threshold/par[1])) * ll - 2*par[2]/par[1] * exp(2 * par[2] * t / par[1]) * pnorm(- ll * ((threshold - cur_path[i])/par[1] + t)) +
+        exp(2*par[2]*t/par[1]) * dnorm(-ll * ((threshold - cur_path[i])/par[1] + t) ) * ll
+    }
+  return(RUL)
+}
+```
 
-$$
-\begin{aligned}
-E\left[S_R^2\right]&=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i} E\left[R_{i j}-\bar{R}\right]^2\\
-&=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i} E\left[R_{i j}-\alpha \beta-(\bar{R}-\alpha \beta)\right]^2 \\
-&=\frac{1}{M-1} \sum_{i=1}^n \sum_{j=1}^{m_i}\left\{Var\left[R_{i j}\right]^2-\frac{2}{m_i} Var\left[R_{i j}\right]+ Var[\bar{R}]\right\} \\
-&=\frac{1}{M-1} \alpha \beta^2 \sum_{i=1}^n \sum_{j=1}^{m_i}\left[\frac{1}{\Delta t_{i j}}\right]
-\end{aligned}
-$$ 将待估参数和样本矩联系起来, 即令 $$
-\left\{\begin{array}{l}
-\alpha \beta=\bar{R} \\
-\alpha \beta^2=M S_R^2 / \sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right]
-\end{array}\right.
-$$ 可得如下矩估计: $$
-\begin{gathered}
-\hat{\alpha}=\frac{\sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right] \bar{R}^2}{M S_R^2} \\
-\hat{\beta}=\frac{M S_R^2}{\sum_{i=1}^n \sum_{j=1}^{m_i}\left[1 / \Delta t_{i j}\right] \bar{R}}
-\end{gathered}
-$$
+```{r,include=FALSE}
+# 未来时刻fut_time下的RUL值
+RUL_3D_density = function(fut_time,time_epoch,rul_den,
+                          threshold,real_RUL,
+                          zlim = c(0,0.1),xlim = c(0,100)){
+  library(plot3D)
+  col = c("#02B1e6", "#E81D22", "#F9BC15", "#8015f9", "#20e81d", "#e64602","black")
+  scatter3D(time_epoch, rep(1,length(time_epoch)), c(rul_den[[1]],rep(NA,length(time_epoch) - length(rul_den[[1]]))),
+            bty = "b2",colkey = FALSE,
+            phi = 14,theta = 55,
+            pch = 18,alpha = 0, expand =0.2,ticktype = "detailed",
+            xlim = xlim,
+            ylim = c(min(fut_time)-5,max(fut_time)+5),
+            zlim = zlim,
+            xlab = "RUL", ylab = "Time", zlab = "Kernel Distribution")
+  # 循环绘制3D图形
+  for(i in 1:length(fut_time)){
+    # 密度函数
+    scatter3D(time_epoch, rep(fut_time[i],length(time_epoch)), c(rul_den[[i]],rep(NA,length(time_epoch) - length(rul_den[[i]]))),
+              add = TRUE,type ='l', col = col[i], pch = 16)
+    # 预测值
+    scatter3D(which.max(rul_den[[i]]), fut_time[i], 0,
+              add = TRUE, type ='h', col = "black", pch = 16)
+    # 真实值
+    scatter3D(real_RUL[i],fut_time[i], 0,
+              add = TRUE, type ='h', col = "red", pch = 5)
+  }
+  legend("top", legend = c("RUL distribution","Point estimation","Real value"),
+         pch=c(NA,16,5), col = c(col[1],"black","red"),lty = c(1,NA,NA)) #,inset = .05
+  # 7.8,6.4
+}
 
-上述矩估计方法是基于退化速率的，金光还给出了基于退化量的矩估计（详见P128）,注意到当测量间隔都相同时，两个矩估计方法相同。
+```
 
+```{r}
+  fut_time = c(50,60,70,80,90,100)
+  time_epoch = 0:150; threshold = 300
+  para = mle_par
+  rul_den = list()
+  for(i in 1:length(fut_time)){
+    rul_den[[i]] = RUL(t = time_epoch, cur_time = fut_time[i],
+                      threshold = threshold, par = para)[[1]]
+  }
+  # sapply(rul_den,which.max)
 
+  p = RUL_3D_density(fut_time,time_epoch,rul_den,threshold,
+                     real_RUL = NA,zlim = c(0,0.08), xlim = c(0,150))
+```
 
-#### 3.1.2 极大似然估计
+# 6 案例分析
 
-由 Gamma 过程独立增量特性, 以及 $$
-\Delta X_{i j} \sim G a\left(\alpha \Delta t_{i j}, \beta\right)=\frac{\left(\Delta x_{i j} / \beta\right)^{\alpha \Delta t_{i j}-1}}{\beta \Gamma\left(\alpha \Delta t_{i j}\right)} \mathrm{e}^{-\Delta x_{i j} / \beta}
-$$ 可以获得对数似然函数为 $$
-l(\alpha, \beta)=\sum_{i=1}^n\left(\sum_{j=1}^{m_i}\left(\alpha \Delta t_{i j}-1\right) \ln \Delta x_{i j}-\alpha t_{i m_i} \ln \beta-\sum_{j=1}^{m_i} \ln \Gamma\left(\alpha \Delta t_{i j}\right)-\frac{x_{i m_i}}{\beta}\right)
-$$ 由极大似然估计原理, 令 $$
-\left\{\begin{array}{l}
-\frac{\partial l}{\partial \alpha}=\sum_{i=1}^n \sum_{j=1}^{m_i} \Delta t_{i j}\left(\ln x_{i j}-\psi\left(\alpha \Delta t_{i j}\right)-\ln \beta\right)=0 \\
-\frac{\partial l}{\partial \beta}=\sum_{i=1}^n\left(\frac{x_{i m_i}}{\beta^2}-\frac{\alpha t_{i m_i}}{\beta}\right)=0
-\end{array}\right.
-$$ 式中 $\psi(u)$ 是 digamma 函数。 $$
-\begin{aligned}
-&\hat{\beta}=\frac{\sum_{i=1}^n X_{i m_i}}{\alpha \sum_{i=1}^n t_{i m_i}}\\
-&\sum_{i=1}^n\left[\sum_{j=1}^{m_i} \Delta t_{i j} \ln \left(\Delta x_{i j}\right)-t_{i m_i} \ln \frac{x_{i m_i}}{\alpha t_{i m_i}}-\sum_{j=1}^{m_i} \Delta t_{i j} \psi\left(\alpha \Delta t_{i j}\right)\right]=0
-\end{aligned}
-$$
+## 6.1 维纳过程相关
 
-
-# 4 案例分析
-
-## 4.1 维纳过程相关
-
-### 4.1.1 NASA 锂电池数据
+### 6.1.1 NASA 锂电池数据
 
 > 数据来源于[NASA Ames Prognostics Center of Excellence (PCoE)](https://c3.ndc.nasa.gov/dashlink/resources/133/)，但是找不到数据下载。最后是通过 [Github](https://github.com/psanabriaUC/BatteryDatasetImplementation) 获得。
 
@@ -546,7 +841,7 @@ R_re %>% pivot_longer(max_battery[,1],
   labs(x = "Time", y = "Reliability")
 ```
 
-### 4.1.2 激光器件 Laser 数据集
+### 6.1.2 激光器件 Laser 数据集
 
 > 数据集来自 Meeker, W. Q. (1998). Statistical Methods for Reliability Data。
 
@@ -611,7 +906,7 @@ R_re %>% pivot_longer(colnames(Laser_new)[-1],
 
 ```
 
-### 4.1.3 炭膜电阻器 carbon-film resistors
+### 6.1.3 炭膜电阻器 carbon-film resistors
 
 > 退化数据来自 Meeker, W. Q. (1998). Statistical Methods for Reliability Data。（常应力下的加速退化数据）。
 
@@ -643,7 +938,7 @@ resistor_dat %>% filter(Degree == 83) %>%
 
 类似的数据集还包括：
 
-### 4.1.4 惯导平台 interial navigition 数据
+### 6.1.4 惯导平台 interial navigition 数据
 
 > 数据来自于文献：Si, X. S., et al. (2012). "Remaining Useful Life Estimation Based on a Nonlinear Diffusion Degradation Process." IEEE Transactions on Reliability **61**(1): 50-67.
 
@@ -681,7 +976,7 @@ interial_new %>%
         legend.position = "right") 
 ```
 
-### 4.1.5 铝合金疲劳裂纹长度 2017-T4 Aluminum Alloy
+### 6.1.5 铝合金疲劳裂纹长度 2017-T4 Aluminum Alloy
 
 > 数据来自： (Si, X. S., et al. (2012). "Remaining Useful Life Estimation Based on a Nonlinear Diffusion Degradation Process." IEEE Transactions on Reliability 61(1): 50-67).
 
@@ -712,13 +1007,9 @@ Alloy_new %>%
         legend.position = "right") 
 ```
 
+## 6.2 伽马过程相关
 
-## 伽马过程相关
-
-
-
-
-#### 4.4.1 wear data
+#### 6.2.1 wear data
 
 > 数据来自： Ye Z.S., et al. (2014). "Semiparametric Estimation of Gamma Processes for Deteriorating Products" Technometrics
 
@@ -741,7 +1032,7 @@ wear_dat %>% ggplot(aes(time,wear,color = Unit)) +
   labs(x = "time", y = "crack")
 ```
 
-#### 4.4.2 Crack of Titanium
+#### 6.2.2 Crack of Titanium
 
 A manufacturer of Titanium (Ti) Grade has the highest ultimate strength of the pure Ti Grades. It is used in many applications where high strength is required. However, under high stress and high cycle fatigue, it develops cracks that lead to failures. In order to conduct a RDT, the manufacturer machined 10 bars with 0.5" diameter and subjected them to high stress and made notches (of the same dimensions) in all the bars to accelerate the crack growth. The crack length is measured every five days and is recoded for the ten units as shown in Table 6.10. The measurements are expressed in 0.001 mm but scaled for calculation purposes. Determine the number of days when the crack threshold reaches 2mm (1500 in the measurement scale)
 
@@ -762,7 +1053,7 @@ ti_dat %>% ggplot(aes(time,crack_length,color = Unit)) +
   labs(x = "time", y = "crack length")
 ```
 
-#### 4.4.3 Lithium-ion batteries
+#### 6.2.3 Lithium-ion batteries
 
 Lithium-ion batteries are widely used in many applications and consumer products including electric vehicles because of their high energy density and power capability. However, the long-term performance (capacity to provide the power) decreases with number of charge and discharge cycles. A degradation test is conducted on four battery cells with initial capacities in Ah (Ampere hours, which is defined as is the amount of energy charge in a battery that will allow one ampere of current to flow for one hour). The cells are discharged and charged, and the battery capacity is measured after the accumulation of a number of charge-discharge cycles. The battery is considered failed when its capacity is $80 \%$ of the original capacity. Use the first 25 observations of each cell and develop a general degradation model. Then utilize the model to predict the capacities at the remaining 17 cycles and calculate the error prediction of the models. Note that the original capacity corresponds to zero cycles.
 
@@ -784,7 +1075,7 @@ li_dat %>% ggplot(aes(cycles,Cell.1,Cell.2,Cell.3,Cell.4)) +
   labs(x = "time", y = "crack length")
 ```
 
-#### 4.4.4 fatigue crack data
+#### 6.2.4 fatigue crack data
 
 > 数据来自： Meeker, W. Q. (1998). Statistical Methods for Reliability Data
 
@@ -808,3 +1099,15 @@ fatigue_dat %>% ggplot(aes(cycles,crack,color = path)) +
   theme(legend.position = 'none') +
   labs(x = "cycles", y = "crack")
 ```
+
+## 6.3 逆高斯过程相关
+
+### 6.3.1 防辐射 Anti-radiation 数据集
+
+> 数据来源：Song, B., et al. (2017). "Performance evaluation of anti-radiation based on the gamma degradation process." Science China Technological Sciences 60(4): 501-509.
+
+> 分析结果参考：Guan, Q., et al. (2019). "Reference Bayesian analysis of inverse Gaussian degradation process." Applied Mathematical Modelling 74: 496-511.（IG + 客观贝叶斯）
+
+数据还未下载（文中有，具体怎么做的试验，还未学习），pdf已经存在Endnote中了。
+
+Peng, W. W., et al. (2014). "Inverse Gaussian process models for degradation analysis: A Bayesian perspective." Reliability Engineering & System Safety **130**: 175-189.（贝叶斯相关）

@@ -247,12 +247,11 @@ ggplot(R_data) +
 RUL = function(t = 50:100, cur_time = 30, threshold = 300, data = dat, par = mle_par){
   RUL = list()
   cur_path = as.numeric(data[cur_time,])
-  ll = numeric()
   for(i in 1:(ncol(data)-1)){
       RUL[[i]] = numeric()
-      ll[i] = sqrt(par[2])/sqrt((threshold - cur_path[i]))
-      RUL[[i]] = dnorm(ll[i] * (t - threshold/par[1])) * ll[i] - 2*par[2]/par[1] * exp(2 * par[2] * t / par[1]) * pnorm(- ll[i] * ((threshold - cur_path[i])/par[1] + t)) +
-        exp(2*par[2]*t/par[1]) * dnorm(-ll[i] * ((threshold - cur_path[i])/par[1] + t) ) * ll[i]
+      ll = sqrt(par[2])/sqrt((threshold - cur_path[i]))
+      RUL[[i]] = dnorm(ll * (t - threshold/par[1])) * ll - 2*par[2]/par[1] * exp(2 * par[2] * t / par[1]) * pnorm(- ll * ((threshold - cur_path[i])/par[1] + t)) +
+        exp(2*par[2]*t/par[1]) * dnorm(-ll * ((threshold - cur_path[i])/par[1] + t) ) * ll
     }
   return(RUL)
 }

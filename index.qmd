@@ -13,7 +13,7 @@ format:
     code-block-bg: true
 editor: visual
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -87,11 +87,6 @@ T_1 &=\inf \left\{t \mid X(t+\tau)-X(\tau) \geqslant l-x_\tau, t \geqslant 0\rig
 \end{aligned}
 $$ 可知剩余寿命 $T_1$ 也是逆 Gaussian 分布, 其密度函数只需将寿命 $T$ 密度函数中的失效阈值 $l$ 替换为 $l-x_\tau$, 即 $$f_{T_1}(t)=\frac{l-x_\tau}{\sqrt{2 \pi \sigma^2 t^3}} \exp \left[-\frac{\left(l-x_\tau-\mu t\right)^2}{2 \sigma^2 t}\right]$$
 
-```{r include=FALSE}
-library(ggplot2)
-library(tidyverse)
-library(viridis)
-```
 
 ### 2.1.1 统计推断
 
@@ -161,7 +156,117 @@ model {
 }
 ```
 
-## 2.2 加速 Wiener 退化过程
+## 2.2 带随机效应情形
+
+从性能退化过程的角度看，采用上述带漂移的 Wiener 过程模型，相当于认为同一批产品的退化过程相同，即参数心和口相同。实际也可能由于产品的原材料、生产过程等的差异，退化过程参数$\mu$和$\sigma$可能因产品个体差异而不同。为了刻画这种情景，我们给出带随机效应的 Wiener 过程模型。给出几种常用的模型：
+
+
+
+$$
+X(t)=\mu t+\sigma B(t)
+$$ 
+
+- **模型一**
+
+假定 $\mu$为随机变量，并服从$N(\mu_\beta,\sigma^2_\beta)$，来描述个体退化速率的差异，$\sigma$是对所有个体相同的扩散参数。
+
+
+- **模型二**
+
+文献 [5] 提出一种不同个体具有不同退化速率和扩散行为的随机效应模型，其中，认为不同单元的漂移和扩散参数都是随机变量，且服从正态-逆Gamma分布。假设
+
+$$
+\sigma^{2} \sim InvGama(\alpha, \beta), \quad
+\mu \mid \sigma^{2} \sim N(v, \eta \sigma^2).
+$$
+
+### 失效时间分布和 RUL
+
+- **模型一** [4]
+
+$$
+f_T(t)=\sqrt{\frac{l^2}{2 \pi t^3\left(\sigma_\beta^2 t+\sigma_B^2\right)}} \exp \left\{-\frac{\left(l-\mu_\beta t\right)^2}{2 t\left(\sigma_\beta^2 t+\sigma_B^2\right)}\right\}, t \geqslant 0
+$$
+对应的不可靠度函数为
+$$
+F_T(t)=\Phi\left(\frac{\mu_\beta t-l}{\sqrt{\sigma_\beta^2 t^2+\sigma_B^2 t}}\right)+\exp \left\{\frac{2 \mu_\beta l}{\sigma_\beta^2}+\frac{2 \sigma_B^2 l^2}{\sigma_B^2}\right\} \Phi\left(\frac{2 \sigma_\beta^2 l t+\sigma_B^2\left(\mu_\beta t+l\right)}{\sigma_B^2 \sqrt{\sigma_\beta^2 t^2+\sigma_B^2 t}}\right)
+$$
+
+- **模型二** [4]
+
+$$
+\begin{aligned}
+f_T(t) & =\frac{\alpha^\beta \Gamma\left(\beta+\frac{1}{2}\right)}{\Gamma(\beta)} \frac{l}{\sqrt{2 \pi t^3(1+\eta t)}}\left[\frac{(l-v t)^2}{2 \alpha t(1+\eta t)}+\alpha\right]^{-\beta-\frac{1}{2}} \\
+& =\frac{\Gamma\left(\beta+\frac{1}{2}\right)}{\Gamma(\beta)} \frac{l}{\sqrt{2 \pi \alpha t^3(1+\eta t)}}\left[\frac{(l-v t)^2}{2 \alpha t(1+\eta t)}+1\right]^{-\beta-\frac{1}{2}}
+\end{aligned}
+$$
+
+### 统计推断
+
+- **模型一** 
+
+由Wiener过程的性质，知道$\Delta X_{i j}| \mu \sim N\left(\mu \Delta t_{i j}, \sigma^2 \Delta t_{i j}\right)$，如上面模型类似，似然函数为：
+
+
+$$
+\begin{aligned}
+l &= \sum_{i=1}^{n} \sum_{j=1}^{m_i} \log \int_{-\infty}^{\infty} f(x;\mu,\sigma) f(\mu) d \mu\\
+& = \sum_{i=1}^{n} \sum_{j=1}^{m_i} \log \int_{-\infty}^{\infty}N\left(\Delta x_{i j}; \mu \Delta t_{i j}, \sigma^2 \Delta t_{i j}\right) \times N(\mu;\mu_\beta,\sigma^2_\beta) d\mu \\
+\end{aligned}
+$$
+
+
+
+- **模型二** 
+
+对数似然函数为
+
+$$
+\begin{aligned}
+l &= \sum_{i=1}^{n} \sum_{j=1}^{m_i} \log \int_{-\infty}^{\infty} f(x;\mu,\sigma) f(\mu) f(\sigma) d \mu d\sigma \\
+\end{aligned}
+$$
+
+
+## 2.3 多应力情形
+
+恒定应力加速Wiener退化过程考虑以下三个假设：
+
+(1) 确定正常应力水平$S_0$和$k$个加速应力水平$S_1,S_2,\ldots,S_r$，且满足如下关系 $${S_0<S}_1<S_2<\ldots<S_r.$$
+
+(2) 在正常应力水平$S_0$和$k$个加速应力水平$S_1,S_2,\ldots,S_r$，产品退化量服从漂移参数为$\mu_i$，扩散参数为$\sigma$的Wiener过程。
+
+(3) 漂移参数为$\mu_i$和应力水平存在以下关系：$$\ln \mu_i = a + b \varphi (S_i).$$
+
+注： 在加速退化试验情况下进行统计推断后，可以外推正常应力水平，包括对可靠度函数、RUL等进行推断，具体表达式和经典Wiener过程相同，只是表达式中的$\mu$用$\mu_0= \exp(a+b \varphi (S_0))$代替。
+
+### 2.3.1 统计推断
+
+假设在加速应力水平$S_i$下有$n_i$ 个样品进行性能退化试验。对第$i$个应力水平的第$j$个样品测量$n_{ij}$次，取每个样品的初始退化量为$X_{ij0}=0$，在时刻$t_{ijk}$样品相应的退化量为$X_{ijk}$。记 $\Delta X_{i j k}=X_{i j k}-X_{i, j, k-1}$ 是第$i$个应力水平下第$j$个样品在时刻 $t_{i j k} \sim t_{i j k-1}$ 之间的退化增量, $\Delta t_{i j k}=t_{i j k }-t_{i j k-1}, i = 1,2 \cdots,r, j=1,2, \cdots, n_i, k=1,2, \cdots, n_{i j}$ 为各样品的测量间隔。
+
+#### 2.2.1.1 极大似然估计
+
+
+由 Wiener 过程的性质, 容易知道 $$
+\Delta X_{i j k} \sim N\left(\mu_i \Delta t_{i j k}, \sigma^2 \Delta t_{i j k}\right)
+$$
+
+于是由退化数据 $X_{i j k}=x_{i j k}$ $i = 1,2 \cdots,r, j=1,2, \cdots, n_i, k=1,2, \cdots, n_{i j}$, 得到模型参数的似然函数为 $$
+\begin{aligned}
+L\left(a,b, \sigma^2\right)&=\prod_{i=1}^r \prod_{j=1}^{n_i} \prod_{k=1}^{n_{i j}} \frac{1}{\sqrt{2 \sigma^2 \pi \Delta t_{i j k}}} \exp \left[-\frac{\left(\Delta x_{i j k}-\mu_i \Delta t_{i j k}\right)^2}{2 \sigma^2 \Delta t_{i j k}}\right]\\
+&=\prod_{i=1}^r \prod_{j=1}^{n_i} \prod_{k=1}^{n_{i j}} \frac{1}{\sqrt{2 \sigma^2 \pi \Delta t_{i j k}}} \exp \left[-\frac{\left(\Delta x_{i j k}-\exp(a+b\varphi(S_i)) \Delta t_{i j k}\right)^2}{2 \sigma^2 \Delta t_{i j k}}\right]
+\end{aligned}
+$$
+
+对应的对数似然函数为 $$
+l \left(a,b, \sigma^2\right)  \propto  N \ln \sigma - \frac{1}{2 \sigma^2} \sum_{i=1}^r \sum_{j=1}^{n_i} \sum_{k=1}^{n_{i j}} \frac{\left(\Delta x_{i j k}-e^{a+b\varphi(S_i)} \Delta t_{i j k}\right)^2}{\Delta t_{i j k}}
+$$
+
+还有一种基于加速因子的似然函数。定义$$\mu_i=\mu_0 \theta^{h_i},$$其中$h_i = \frac{\varphi(S_0)-\varphi(S_i)}{\varphi(S_0)-\varphi(S_1)}$。 此时，相应的对数似然函数为 $$
+l \left( \mu_0 ,\theta, \sigma^2\right)  \propto  N \ln \sigma - \frac{1}{2 \sigma^2} \sum_{i=1}^r \sum_{j=1}^{n_i} \sum_{k=1}^{n_{i j}} \frac{\left(\Delta x_{i j k}- \mu_0 \theta^{h_i} \Delta t_{i j k}\right)^2}{\Delta t_{i j k}}
+$$
+
+
 
 # 3. Gamma 退化过程模型
 
@@ -301,6 +406,38 @@ $$
 
 ## 3.2 加速 Gamma 退化过程
 
+恒定应力加速Gamma退化过程考虑以下三个假设：
+
+(1) 确定正常应力水平$S_0$和$k$个加速应力水平$S_1,S_2,\ldots,S_r$，且满足如下关系 $${S_0<S}_1<S_2<\ldots<S_r.$$
+
+(2) 在正常应力水平$S_0$和$k$个加速应力水平$S_1,S_2,\ldots,S_r$，产品退化量服从漂移参数为$\alpha_i$，扩散参数为$\beta$的Gamma过程。
+
+(3) 漂移参数为$\alpha_i$和应力水平存在以下关系：$$\ln \alpha_i = a + b \varphi (S_i).$$
+
+注： 在加速退化试验情况下进行统计推断后，可以外推正常应力水平，包括对可靠度函数、RUL等进行推断，具体表达式和经典Gamma过程相同，只是表达式中的$\alpha$用$\alpha_0= \exp(a+b \varphi (S_0))$代替。
+
+### 3.2.1 统计推断
+
+假设在加速应力水平$S_i$下有$n_i$ 个样品进行性能退化试验。对第$i$个应力水平的第$j$个样品测量$n_{ij}$次，取每个样品的初始退化量为$X_{ij0}=0$，在时刻$t_{ijk}$样品相应的退化量为$X_{ijk}$。记 $\Delta X_{i j k}=X_{i j k}-X_{i, j, k-1}$ 是第$i$个应力水平下第$j$个样品在时刻 $t_{i j k} \sim t_{i j k-1}$ 之间的退化增量, $\Delta t_{i j k}=t_{i j k }-t_{i j k-1}, i = 1,2 \cdots,r, j=1,2, \cdots, n_i, k=1,2, \cdots, n_{i j}$ 为各样品的测量间隔。
+
+#### 3.2.1.1 极大似然估计
+
+<!-- 在简单情形, 认为退化数据的测量不存在误差, 并且总体退化过程不存在随机效应。 -->
+
+由 Gamma 过程独立增量特性, 以及 $$
+\Delta X_{i j k} \sim G a\left(\alpha_i \Delta t_{i j k}, \beta\right)=\frac{\left(\Delta x_{i j k} / \beta\right)^{\alpha_i \Delta t_{i j k}-1}}{\beta \Gamma\left(\alpha_i \Delta t_{i j k}\right)} \mathrm{e}^{-\Delta x_{i j k} / \beta}
+$$ 可以获得对数似然函数为 $$
+\begin{aligned}
+l(a,b, \beta)&=\sum_{i=1}^r \sum_{j=1}^n \sum_{k=1}^{n_{ i j}} \alpha_i \Delta t_{i j k} \ln \Delta x_{i j k}-\ln \beta \sum_{i=1}^r \alpha_i T_i  - \sum_{i=1}^r \sum_{j=1}^n \sum_{k=1}^{n_{ i j}} \ln \Gamma \left(\alpha_i \Delta t_{i j k}\right)-\sum_{i=1}^r X_i/ \beta\\
+&=\sum_{i=1}^r \sum_{j=1}^n \sum_{k=1}^{n_{ i j}} e^{a+b\varphi(S_i)}  \Delta t_{i j k} \ln \Delta x_{i j k}-\ln \beta \sum_{i=1}^r e^{a+b\varphi(S_i)} T_i  - \sum_{i=1}^r \sum_{j=1}^n \sum_{k=1}^{n_{ i j}} \ln \Gamma \left(e^{a+b\varphi(S_i)} \Delta t_{i j k}\right)-\sum_{i=1}^r X_i/ \beta
+\end{aligned},
+$$ 其中$T_i=\sum_{j=1}^n \sum_{k=1}^{n_{ i j}} \Delta t_{i j k} ,X_i=\sum_{j=1}^n \sum_{k=1}^{n_{ i j}} \Delta x_{i j k}$。
+
+还有一种基于加速因子的似然函数。定义$$\alpha_i=\alpha_0 \theta^{h_i},$$其中$h_i = \frac{\varphi(S_0)-\varphi(S_i)}{\varphi(S_0)-\varphi(S_1)}$。 此时，相应的似然函数为 $$
+l(\alpha_0,\theta, \beta)=\sum_{i=1}^r \sum_{j=1}^n \sum_{k=1}^{n_{ i j}} \alpha_0 \theta^{h_i} \Delta t_{i j k} \ln \Delta x_{i j k}-\ln \beta \sum_{i=1}^r \alpha_0 \theta^{h_i} T_i  - \sum_{i=1}^r \sum_{j=1}^n \sum_{k=1}^{n_{ i j}} \ln \Gamma \left(\alpha_0 \theta^{h_i} \Delta t_{i j k}\right)-\sum_{i=1}^r X_i/ \beta
+$$
+
+
 # 4. IG 退化过程模型
 
 <!-- > 来源：Ye, Z.-S. and M. Xie (2015). "Stochastic modelling and analysis of degradation for highly reliable products." Applied Stochastic Models in Business and Industry 31(1): 16-32. -->
@@ -371,383 +508,56 @@ $$
 
 ## 4.2 加速 IG 退化过程
 
+恒定应力加速Gamma退化过程考虑以下三个假设：
+
+(1) 确定正常应力水平$S_0$和$k$个加速应力水平$S_1,S_2,\ldots,S_r$，且满足如下关系 $${S_0<S}_1<S_2<\ldots<S_r.$$
+
+(2) 在正常应力水平$S_0$和$k$个加速应力水平$S_1,S_2,\ldots,S_r$，产品退化量服从漂移参数为$\mu_i$，扩散参数为$\lambda$的Gamma过程。
+
+(3) 漂移参数为$\mu_i$和应力水平存在以下关系：$$\ln \mu_i = a + b \varphi (S_i).$$
+
+注： 在加速退化试验情况下进行统计推断后，可以外推正常应力水平，包括对可靠度函数、RUL等进行推断，具体表达式和经典Gamma过程相同，只是表达式中的$\mu$用$\mu_0= \exp(a+b \varphi (S_0))$代替。
+
+### 4.2.1 统计推断
+
+假设在加速应力水平$S_i$下有$n_i$ 个样品进行性能退化试验。对第$i$个应力水平的第$j$个样品测量$n_{ij}$次，取每个样品的初始退化量为$X_{ij0}=0$，在时刻$t_{ijk}$样品相应的退化量为$X_{ijk}$。记 $\Delta X_{i j k}=X_{i j k}-X_{i, j, k-1}$ 是第$i$个应力水平下第$j$个样品在时刻 $t_{i j k} \sim t_{i j k-1}$ 之间的退化增量, $\Delta t_{i j k}=t_{i j k }-t_{i j k-1}, i = 1,2 \cdots,r, j=1,2, \cdots, n_i, k=1,2, \cdots, n_{i j}$ 为各样品的测量间隔。
+
+#### 4.2.1.1 极大似然估计
+
+<!-- 在简单情形, 认为退化数据的测量不存在误差, 并且总体退化过程不存在随机效应。 -->
+
+可以获得似然函数为 $$
+L(a,b, \lambda)=\prod_{i=1}^r \prod_{j=1}^{n_i} \prod_{k=1}^{n_{ij}} f_{I G}\left(\Delta x_{i j k}, \mu_i \Delta t_{i j k}, \lambda \Delta^2 t_{i j k}\right).
+$$
+
+对数似然函数为： $$
+\begin{aligned}
+\log L(a,b, \lambda) & \propto \prod_{i=1}^r \prod_{j=1}^{n_i} \prod_{k=1}^{n_{ij}}  \left(\frac{1}{2} \log (\lambda)+\log \Delta t_{i j k}-\frac{3}{2} \log \left(\Delta x_{i j k}\right)-\frac{\lambda\left(\Delta x_{i j k}-\mu_i \Delta t_{i j k}\right)^2}{2 \mu_i^2 \Delta x_{i j k}}\right)\\
+& \propto \prod_{i=1}^r \prod_{j=1}^{n_i} \prod_{k=1}^{n_{ij}}  \left(\frac{1}{2} \log (\lambda)+\log \Delta t_{i j k}-\frac{3}{2} \log \left(\Delta x_{i j k}\right)-\frac{\lambda\left(\Delta x_{i j k}-e^{a+b\varphi(S_i)} \Delta t_{i j k}\right)^2}{2 e^{2a+2b\varphi(S_i)} \Delta x_{i j k}}\right)\\
+\end{aligned}
+$$
+
+还有一种基于加速因子的似然函数。定义$$\mu_i=\mu_0 \theta^{h_i},$$其中$h_i = \frac{\varphi(S_0)-\varphi(S_i)}{\varphi(S_0)-\varphi(S_1)}$。 此时，相应的似然函数为 $$
+\log L(\mu_0, \theta, \lambda)  \propto \prod_{i=1}^r \prod_{j=1}^{n_i} \prod_{k=1}^{n_{ij}}  \left(\frac{1}{2} \log (\lambda)+\log \Delta t_{i j k}-\frac{3}{2} \log \left(\Delta x_{i j k}\right)-\frac{\lambda\left(\Delta x_{i j k}-\mu_0 \theta^{h_i} \Delta t_{i j k}\right)^2}{2 \mu_0^2 \theta^{2h_i} \Delta x_{i j k}}\right)
+$$
+
+
+
+
+
+
+
+
 # 5. 模拟数据分析
 
 ## 5.1 经典维纳过程
 
-数据模拟产生
 
-```{r include=FALSE}
-# 数据模拟产生
-sim_dat = function(group = 6, t = 1:200, para = c(1,0.1)){
-  # para 指 mu,sigma
-  # epoch 指测量次数， group 指组数
-  delta_t = diff(t)
-  epoch = length(delta_t)
-  dat = matrix(NA,epoch,group+1)
-  dat[,1] = seq(1,epoch)
-  dat_unit = numeric()
-  for(i in 1:group){
-    for(j in 1:epoch) dat_unit[j] = rnorm(1,para[1]*delta_t[j],sqrt(para[2]^2*delta_t[j]))
-    dat[,i+1] = cumsum(dat_unit)
-  }
-  dat = data.frame(dat)
-  dat1 = rbind(rep(0,group+1),dat) # 加入初始值绘制点
-  colnames(dat1) = c("Time",paste(1:group,sep=''))
-  return(dat1)
-}
-```
-
-```{r include=FALSE}
-# 绘制退化路径图
-plot_path = function(data = dat1){
-    # 画图
-  p = data %>% pivot_longer(paste(1:group),
-                       names_to = "Group",
-                       values_to = "y") %>%
-    ggplot(aes(Time,y,color = Group)) +
-    geom_line() +
-    scale_color_viridis(discrete = T) +
-    ylab("Degradation") #+
-    #theme_bw() +
-    #theme(panel.grid = element_blank())
-  print(p)
-}
-```
-
-```{r }
-group = 6
-t = 1:200
-para = c(1,1)
-dat = sim_dat(group = group, t = t, para = para)
-knitr::kable(head(dat))
-plot_path(dat)
-```
-
-绘制退化路径图
-
-```{r include=FALSE}
-cumsub = function(x){
-  #完成逐个相减功能，类似cumsum
-  re = numeric()
-  re[1] = x[1]
-  for(i in 2:length(x)){
-    re[i] = x[i] - x[i-1]
-  }
-  return(re)
-}
-```
-
-极大似然估计
-
-```{r include=FALSE}
-Weiner_mle = function(par = c(1,1),data = dat){
-  # 输入：mu，sigma，数据
-  # 输出：负对数似然函数
-  mu = par[1]; sigma = par[2]
-  group = ncol(data) - 1;time = data[,1];y = data[-1,-1]
-  # 差分得到delta_time和delta_y
-  delta_time = matrix(rep(diff(time),group),length(diff(time)),group)
-  delta_y = matrix(NA,nrow(delta_time),group)
-  for(i in 1:group) delta_y[,i] = cumsub(y[,i])
-
-  logl = -1/2 * sum(log(delta_time)) - group*nrow(delta_time)*log(sigma) - sum((delta_y - mu * delta_time)^2/(2*sigma^2*delta_time),na.rm =T)
-
-  return(-logl)
-}
-```
-
-```{r}
-mle_re = optim(par=c(1,1), fn = Weiner_mle,
-      data = dat, method = "BFGS", hessian = TRUE)
-# mle_re
-mle_par = mle_re$par
-# 区间估计
-mle_up = mle_re$par + sqrt(diag(solve(mle_re$hessian)))*qnorm(0.975)
-mle_low = mle_re$par - sqrt(diag(solve(mle_re$hessian)))*qnorm(0.975) #hessian 和协方差矩阵存在逆的关系：https://blog.csdn.net/anruoxi3236/article/details/102005217
-mle_summary = round(cbind(mle_low,mle_re$par,mle_up),3)
-colnames(mle_summary) = c("low","mean","up")
-knitr::kable(mle_summary)
-```
-
-贝叶斯估计
-
-```{r}
-# 数据准备
-group = ncol(dat) - 1;time = dat[,1];y = dat[-1,-1]
-# 差分得到delta_time和delta_y
-delta_time = matrix(rep(diff(time),group),length(diff(time)),group)
-delta_y = matrix(NA,nrow(delta_time),group)
-for(i in 1:group) delta_y[,i] = cumsub(y[,i])
-
-wiener_data <- list(
-  I = nrow(delta_y),
-  J = ncol(delta_y),
-  x = delta_y,
-  t = delta_time
-)
-```
-
-```{r}
-#| warning: false
-#| message: false
-# 后验抽样
-library(rstan)
-options(mc.cores = parallel::detectCores())
-rstan_options(auto_write = TRUE)
-fit1 = stan(
-  file = "wiener_linear.stan",
-  data = wiener_data,
-  chains = 1,
-  warmup = 1000,
-  iter = 2000,
-  cores = 4,
-  refresh = 0
-)
-```
-
-输出各个参数的后验估计结果并进行绘制。
-
-```{r}
-print(fit1,
-      probs = c(0.1,0.5,0.9))
-
-plot(fit1)
-
-traceplot(fit1,pars = c("mu","w"),
-          inc_warmup = T,
-          nrow = 1) +
-  theme(legend.position = "top")
-```
-
-可以看出，效果较好。真实值为：$\mu = 2,w = 1 / \sigma^2 = 0.25$，估计值为：$\mu = 2,w = 1 / \sigma^2 = 0.5$。 估计值的$\sigma^2$ 有些问题，应该如何处理？
-
-可靠度和 RUL 计算
-
-这里以MLE的参数估计值作为案例。
-
-```{r,collapse=TRUE}
-## 可靠度计算
-Wiener_R = function(t = 100, threshold = 150,par = mle_par){
-  R = pnorm((threshold - par[1]*t)/(par[2]*sqrt(t))) - exp(2*par[1]*threshold/(par[2]^2)) * pnorm((-threshold - par[1]*t)/(par[2]*sqrt(t)))
-  return(R)
-}
-
-```
-
-```{r}
-R_time = 1:300
-R_data = data.frame("Time" = R_time,
-  "Up" = Wiener_R(t = R_time, threshold = 150,par = mle_up),
-           "Mean" = Wiener_R(t = R_time, threshold = 150,par = mle_par),
-           "Low" = Wiener_R(t = R_time, threshold = 150,par = mle_low))
-
-```
-
-```{r}
-# 绘制带区间估计的可靠度函数
-ggplot(R_data) +
-  geom_line(aes(Time,Up),color = "gray60",linetype = 2) +
-  geom_line(aes(Time,Mean)) +
-  geom_line(aes(Time,Low),color = "gray60",linetype = 2) +
-  ylab("Reliability") + xlab("time")
-```
 
 ## 5.2 经典 Gamma 过程
 
 ## 5.3 经典 IG 过程
 
-数据模拟产生
-
-```{r include=FALSE}
-# 数据模拟产生
-sim_dat = function(group = 6, t = 1:200, para = c(2,2)){
-  library(SuppDists)
-  # para 指 mu,lambda
-  # epoch 指测量次数，group 指组数
-  delta_t = diff(t)
-  epoch = length(delta_t)
-  dat = matrix(NA,epoch,group+1)
-  dat[,1] = seq(1,epoch)
-  dat_unit = numeric()
-  for(i in 1:group){
-    for(j in 1:epoch) dat_unit[j] = rinvGauss(1,para[1]*delta_t[j], para[2] * (delta_t[j])^2)  #来自SuppDists包，注意与statmod包不同rinvgauss()
-    dat[,i+1] = cumsum(dat_unit)
-  }
-  dat = data.frame(dat)
-  dat1 = rbind(rep(0,group+1),dat) # 加入初始值绘制点
-  colnames(dat1) = c("Time",paste(1:group,sep=''))
-  return(dat1)
-}
-```
-
-绘制退化路径图
-
-```{r include=FALSE}
-# 绘制退化路径图
-plot_path = function(data = dat1){
-    # 画图
-  p = data %>% pivot_longer(paste(1:group),
-                       names_to = "Group",
-                       values_to = "y") %>%
-    ggplot(aes(Time,y,color = Group)) +
-    geom_line() +
-    scale_color_viridis(discrete = T) +
-    ylab("Degradation") #+
-    #theme_bw() +
-    #theme(panel.grid = element_blank())
-  print(p)
-}
-```
-
-```{r }
-group = 6
-t = 1:200
-para = c(5,5) #eta,lambda
-dat = sim_dat(group = group, t = t, para = para)
-knitr::kable(head(dat))
-plot_path(dat)
-```
-
-极大似然估计
-
-```{r include=FALSE}
-cumsub = function(x){
-  #完成逐个相减功能，类似cumsum
-  re = numeric()
-  re[1] = x[1]
-  for(i in 2:length(x)){
-    re[i] = x[i] - x[i-1]
-  }
-  return(re)
-}
-```
-
-```{r include=FALSE}
-IG_mle = function(par = c(2,2),data = dat){
-  # 输入：mu,lambda，数据
-  # 输出：负对数似然函数
-  group = ncol(data) - 1;time = data[,1];y = data[-1,-1]
-  # 差分得到delta_time和delta_y
-  delta_time = matrix(rep(diff(time),group),length(diff(time)),group)
-  delta_y = matrix(NA,nrow(delta_time),group)
-  for(i in 1:group) delta_y[,i] = cumsub(y[,i])
-
-  logl = nrow(delta_time) * group * 1/2 * log(par[2]) + sum(log(delta_time) - 3/2 * log(delta_y) - (par[2]*(delta_y - par[1]*delta_time)^2)/(2 * par[1]^2 * delta_y),na.rm =T)
-
-  return(-logl)
-}
-```
-
-```{r}
-mle_re = optim(par=c(0.6,5), fn = IG_mle,
-      data = dat, method = "BFGS", hessian = TRUE)
-mle_re$par
-mle_par = mle_re$par
-# 区间估计
-mle_up = mle_re$par + sqrt(diag(solve(mle_re$hessian)))*qnorm(0.975)
-mle_low = mle_re$par - sqrt(diag(solve(mle_re$hessian)))*qnorm(0.975) #hessian 和协方差矩阵存在逆的关系：https://blog.csdn.net/anruoxi3236/article/details/102005217
-mle_summary = round(cbind(mle_low,mle_re$par,mle_up,para),3)
-colnames(mle_summary) = c("low","mean","up","true")
-knitr::kable(mle_summary)
-```
-
-可靠度和 RUL 计算
-
--   可靠度
-
-```{r,include=FALSE}
-## 可靠度计算
-IG_R = function(t = 100, threshold = 200, par = mle_par){
-  R = 1 - pnorm(sqrt(par[2]/threshold)*(t - threshold/par[1])) +
-    exp(2*par[2]*t/par[1])*pnorm(-sqrt(par[2]/threshold) *(threshold/par[1] + t))
-  return(R)
-}
-```
-
-```{r}
-# 给个简单例子
-IG_R(t = 30, threshold = 150,par = mle_par)
-# 绘制带区间估计的可靠度函数（需要优化为 ggplot 绘制）
-R_time = 1:60
-R_data = data.frame("Time" = R_time,
-  "Up" = IG_R(t = R_time, threshold = 150,par = mle_up),
-           "Mean" = IG_R(t = R_time, threshold = 150,par = mle_par),
-           "Low" = IG_R(t = R_time, threshold = 150,par = mle_low))
-
-# 绘制带区间估计的可靠度函数
-ggplot(R_data) +
-  geom_line(aes(Time,Up),color = "gray60",linetype = 2) +
-  geom_line(aes(Time,Mean)) +
-  geom_line(aes(Time,Low),color = "gray60",linetype = 2) +
-  ylab("Reliability") + xlab("time")
-```
-
--   RUL
-
-```{r,include=FALSE}
-## 剩余使用寿命 ========
-RUL = function(t = 50:100, cur_time = 30, threshold = 300, data = dat, par = mle_par){
-  RUL = list()
-  cur_path = as.numeric(data[cur_time,])
-  for(i in 1:(ncol(data)-1)){
-      RUL[[i]] = numeric()
-      ll = sqrt(par[2])/sqrt((threshold - cur_path[i]))
-      RUL[[i]] = dnorm(ll * (t - threshold/par[1])) * ll - 2*par[2]/par[1] * exp(2 * par[2] * t / par[1]) * pnorm(- ll * ((threshold - cur_path[i])/par[1] + t)) +
-        exp(2*par[2]*t/par[1]) * dnorm(-ll * ((threshold - cur_path[i])/par[1] + t) ) * ll
-    }
-  return(RUL)
-}
-```
-
-```{r,include=FALSE}
-# 未来时刻fut_time下的RUL值
-RUL_3D_density = function(fut_time,time_epoch,rul_den,
-                          threshold,real_RUL,
-                          zlim = c(0,0.1),xlim = c(0,100)){
-  library(plot3D)
-  col = c("#02B1e6", "#E81D22", "#F9BC15", "#8015f9", "#20e81d", "#e64602","black")
-  scatter3D(time_epoch, rep(1,length(time_epoch)), c(rul_den[[1]],rep(NA,length(time_epoch) - length(rul_den[[1]]))),
-            bty = "b2",colkey = FALSE,
-            phi = 14,theta = 55,
-            pch = 18,alpha = 0, expand =0.2,ticktype = "detailed",
-            xlim = xlim,
-            ylim = c(min(fut_time)-5,max(fut_time)+5),
-            zlim = zlim,
-            xlab = "RUL", ylab = "Time", zlab = "Kernel Distribution")
-  # 循环绘制3D图形
-  for(i in 1:length(fut_time)){
-    # 密度函数
-    scatter3D(time_epoch, rep(fut_time[i],length(time_epoch)), c(rul_den[[i]],rep(NA,length(time_epoch) - length(rul_den[[i]]))),
-              add = TRUE,type ='l', col = col[i], pch = 16)
-    # 预测值
-    scatter3D(which.max(rul_den[[i]]), fut_time[i], 0,
-              add = TRUE, type ='h', col = "black", pch = 16)
-    # 真实值
-    scatter3D(real_RUL[i],fut_time[i], 0,
-              add = TRUE, type ='h', col = "red", pch = 5)
-  }
-  legend("top", legend = c("RUL distribution","Point estimation","Real value"),
-         pch=c(NA,16,5), col = c(col[1],"black","red"),lty = c(1,NA,NA)) #,inset = .05
-  # 7.8,6.4
-}
-
-```
-
-```{r}
-  fut_time = c(50,60,70,80,90,100)
-  time_epoch = 0:150; threshold = 300
-  para = mle_par
-  rul_den = list()
-  for(i in 1:length(fut_time)){
-    rul_den[[i]] = RUL(t = time_epoch, cur_time = fut_time[i],
-                      threshold = threshold, par = para)[[1]]
-  }
-  # sapply(rul_den,which.max)
-
-  p = RUL_3D_density(fut_time,time_epoch,rul_den,threshold,
-                     real_RUL = NA,zlim = c(0,0.08), xlim = c(0,150))
-```
 
 # 6 案例分析
 
@@ -763,83 +573,55 @@ RUL_3D_density = function(fut_time,time_epoch,rul_den,
 
 放电也以恒流模式进行，放电电流为2A，直到电池电压降低到2.7V。
 
-重复充电和放电将导致蓄电池老化。对应的四个产品电池容量变化如下图所示：
-
-```{r}
-liion_data = read.csv("dataset/li-ion_battery_aging.csv")
-knitr::kable(head(liion_data))
-```
-
-```{r}
-liion_data %>% 
-  ggplot(aes(id_cycle,Capacity,color = Battery)) + 
-  geom_line() + 
-  scale_color_viridis(discrete = T) +
-  xlab("Cycle") #+
-  #theme_bw() + theme(panel.grid = element_blank())
-```
-
+重复充电和放电将导致蓄电池老化。
 我们直接使用充放电循环次数作为时间刻度。由于随着时间的推移，电池容量呈下降趋势。而用维纳过程来进行 RUL 预测方法是建立在退化过程有增加趋势的基础上的。为了应用该模型，对原始数据进行转换：用初始容量减去每个电池的所有容量数据。此时，失效阈值更改为初始容量减去 1.4 Ahr。
 
+前面对数据进行了导入、处理以及可视化。接下来，使用经典的线性维纳过程对其进行建模。使用处理后的数据集，来自自己创建的R包中`sdp`中。
 ```{r}
-max_battery = aggregate(liion_data$Capacity,by = list(liion_data$Battery),max)
-max_battery$threshold = max_battery$x - 1.4
-
-liion_data$Capacity_new = -liion_data$Capacity + rep(max_battery[,2],as.numeric(table(liion_data$Battery)))
-
-liion_data %>% 
-  ggplot(aes(id_cycle,Capacity_new,color = Battery)) + 
-  geom_line() + 
-  scale_color_viridis(discrete = T) +
-  xlab("Cycle") +
-  #theme_bw() + 
-  #theme(panel.grid = element_blank()) + #添加失效阈值
-  geom_hline(yintercept = max_battery$threshold[1],lty = 2) +
-    geom_hline(yintercept = max_battery$threshold[2],lty = 2) +
-      geom_hline(yintercept = max_battery$threshold[3],lty = 2) +
-      geom_hline(yintercept = max_battery$threshold[4],lty = 2) 
+# devtools::install_github("Liangliangzhuang/sdp",force = TRUE)
+library(sdp)
 ```
 
-前面对数据进行了导入、处理以及可视化。接下来，使用经典的线性维纳过程对其进行建模。
+```{r warning=FALSE}
+str(lithium_battery)
+plot_path(lithium_battery[[1]]) + 
+  # scale_color_discrete() +
+  theme_bw() + 
+  theme(panel.grid = element_blank()) 
+```
 
-```{r}
-liion_data %>% 
-  select(Capacity_new,Battery,id_cycle) %>% 
-  pivot_wider(
-    names_from = "Battery",
-    values_from = "Capacity_new",
-    values_fn = mean) -> liion_new
+
+```{r warning=FALSE}
+# Inference
+# MLE ========
+mle_fit = sta_infer(method = "MLE", process = "Wiener", type = "classical",
+                    data = lithium_battery[[1]])
+mle_fit
+Reliability(t = 100, threshold = lithium_battery[[2]][1],par = mle_fit,
+            process = "Wiener",type = "classical")
+Reliability_cowplot(R_time = 1:300, sum_para = mle_fit, threshold = lithium_battery[[2]],
+                               process = "Wiener", type = "classical")
 ```
 
 ```{r}
-mle_re = optim(par=c(1,1), fn = Weiner_mle, 
-      data = data.frame(liion_new), method = "BFGS", hessian = TRUE)
-mle_par = mle_re$par
-mle_par
+rul2 = RUL(t = 1:100, cur_time = 30, threshold = lithium_battery[[2]][1], data = lithium_battery[[1]], par = mle_fit[,2], process = "Wiener", type = "classical")
+
+RUL_plot(fut_time = c(10,15,20,25,30), 
+         time_epoch = 1:300,
+         group = 1,
+         process = "Wiener", 
+         type = "classical",
+         threshold = lithium_battery[[2]][1],
+         dat = lithium_battery[[1]],
+         zlim = c(0,0.01),
+         xlim = c(0,300),
+         para = mle_fit[,2],
+         real_RUL=c(NA,NA,NA,NA,NA,NA))
 ```
 
-计算可靠度并绘图
 
-```{r}
-# 计算可靠度
-Wiener_R(t = 100, threshold = max_battery$threshold, par = mle_par)
-time_region = 400
-# 绘制四个电池的可靠度图
-R_re = matrix(NA,time_region,4)
-for(i in 1:4){
-  R_re[,i] = Wiener_R(t = 1:time_region, threshold = max_battery$threshold[i],par = mle_par)
-}
-R_re = as.data.frame(R_re)
-R_re = cbind(1:time_region,R_re)
-colnames(R_re) = c("time",max_battery[,1])
-R_re %>% pivot_longer(max_battery[,1], 
-                       names_to = "Group", 
-                       values_to = "y") %>% 
-  ggplot(aes(time,y,color = Group,shape = Group)) +
-  geom_line() + 
-  scale_color_viridis(discrete = T) +
-  labs(x = "Time", y = "Reliability")
-```
+
+
 
 ### 6.1.2 激光器件 Laser 数据集
 
@@ -872,39 +654,37 @@ Laser_dat %>%
 ```
 
 ```{r}
-mle_Laser = optim(par=c(1,1), fn = Weiner_mle, 
-      data = data.frame(Laser_new), method = "BFGS", hessian = TRUE)
-mle_par = mle_Laser$par
-mle_par
+# Inference
+# MLE ========
+mle_Laser = sta_infer(method = "MLE", process = "Wiener", type = "classical", data = as.data.frame(Laser_new))
+mle_Laser
 ```
 
-计算可靠度并绘图，阈值设置参考 Wang, X., et al. (2020). "Accurate reliability inference based on Wiener process with random effects for degradation data." Reliability Engineering & System Safety **193**. 第6节案例分析
+计算可靠度并绘图，阈值设置参考 Wang, X., et al. (2020). “Accurate reliability inference based on Wiener process with random effects for degradation data.” Reliability Engineering & System Safety 193. 第6节案例分析
 
-这里将每个测试单元的可靠度进行绘制，但是由于类似，所以重复在一条线上了。
-
-> 可拓展：加入90%，95%的 R（计算参数的区间估计）；所有测试单元求平均得到可靠度。
+```{r warning=FALSE}
+Reliability(t = 5000, threshold = 10,par = mle_Laser,
+            process = "Wiener",type = "classical")
+Reliability_cowplot(R_time = 1:10000, sum_para = mle_Laser, threshold = c(10,8,9,11,5,12),process = "Wiener", type = "classical")
+```
 
 ```{r}
-# 计算可靠度
-Wiener_R(t = 5000, threshold = 10, par = mle_par)
-time_region = 10000
-# 绘制15个测试单元的可靠度图
-R_re = matrix(NA,time_region,dim(Laser_new)[2]-1)
-for(i in 1:dim(Laser_new)[2]-1){
-  R_re[,i] = Wiener_R(t = 1:time_region, threshold = 10, par = mle_par)
-}
-R_re = as.data.frame(R_re)
-R_re = cbind(1:time_region,R_re)
-colnames(R_re) = colnames(Laser_new)
-R_re %>% pivot_longer(colnames(Laser_new)[-1], 
-                       names_to = "Group", 
-                       values_to = "y") %>% 
-  ggplot(aes(Hours,y,color = Group)) +
-  geom_line() + 
-  labs(x = "Time", y = "Reliability") + 
-  theme(legend.position = 'none')
+rul2 = RUL(t = 1:1000, cur_time = 30000, threshold = 10, data = as.data.frame(Laser_new), par = mle_Laser[,2], process = "Wiener", type = "classical")
 
+# RUL_plot(fut_time = c(10,15,20,25,30), 
+#          time_epoch = 1:1000,
+#          group = 1,
+#          process = "Wiener", 
+#          type = "classical",
+#          threshold = 10,
+#          dat = as.data.frame(Laser_new),
+#          zlim = c(0,0.01),
+#          xlim = c(0,1000),
+#          para = mle_Laser[,2],
+#          real_RUL=c(NA,NA,NA,NA,NA,NA))
 ```
+
+
 
 ### 6.1.3 炭膜电阻器 carbon-film resistors
 
@@ -958,6 +738,7 @@ knitr::kable(head(interial_dat))
 该数据需要用非线性的漂移参数的维纳过程来刻画。暂时按下不表。
 
 ```{r}
+library(viridis)
 interial_new = interial_dat %>% 
   pivot_longer(`Item1`:`Item5`, 
     names_to = "Product", 
